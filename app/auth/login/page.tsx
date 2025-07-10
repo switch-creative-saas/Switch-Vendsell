@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import Link from "next/link"
-import { supabase } from "@/lib/supabase"
+// Removed Supabase import - using Back4App instead
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 
