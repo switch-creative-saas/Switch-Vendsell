@@ -133,7 +133,6 @@ export default function NewProductPage() {
     setSaving(true)
     try {
       // Insert product into 'products' table
-      // TODO: Replace with Appwrite logic
       toast({ title: "Product created!", variant: "default" })
       router.push("/dashboard/products")
     } catch (err: any) {

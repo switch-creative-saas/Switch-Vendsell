@@ -61,9 +61,7 @@
     "sonner": "^1.7.1",
     "twilio": "^4.15.0",
     "vaul": "^1.1.2",
-    "zod": "^3.24.1",
-    "parse": "^6.1.1",
-    "@nhost/nhost-js": "^3.3.0"
+    "zod": "^3.24.1"
   },
   "devDependencies": {
     "typescript": "^5.4.5",

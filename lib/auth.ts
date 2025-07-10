@@ -1,5 +1,3 @@
-import { account } from './appwrite';
-
 export interface AuthUser {
   id: string
   email: string
@@ -13,13 +11,8 @@ export interface AuthUser {
 
 export class AuthService {
   // Get current user session
-  static async getCurrentUser(): Promise<User | null> {
-    try {
-      return await account.get();
-    } catch (error) {
-      console.error('Error getting current user:', error);
-      return null;
-    }
+  static async getCurrentUser(): Promise<AuthUser | null> {
+    throw new Error('Not implemented');
   }
 
   // Sign up with email and password
@@ -28,33 +21,27 @@ export class AuthService {
     last_name: string
     phone?: string
   }) {
-    return account.create('unique()', email, password, userData);
+    throw new Error('Not implemented');
   }
 
   // Sign in with email and password
   static async signIn(email: string, password: string) {
-    return account.createEmailSession(email, password);
+    throw new Error('Not implemented');
   }
 
   // Sign out
   static async signOut() {
-    return account.deleteSession('current');
+    throw new Error('Not implemented');
   }
 
   // Reset password
   static async resetPassword(email: string) {
-    const { error } = await account.updatePassword(email, {
-      redirectTo: `${process.env.NEXT_PUBLIC_APP_URL}/auth/reset-password`
-    });
-
-    if (error) throw error;
+    throw new Error('Not implemented');
   }
 
   // Update password
   static async updatePassword(newPassword: string) {
-    const { error } = await account.updatePassword(newPassword);
-
-    if (error) throw error;
+    throw new Error('Not implemented');
   }
 
   // Update user profile
@@ -64,20 +51,12 @@ export class AuthService {
     phone?: string
     avatar_url?: string
   }) {
-    const { error } = await account.update(updates);
-
-    if (error) throw error;
+    throw new Error('Not implemented');
   }
 
   // Get user profile from users table
   static async getUserProfile(userId: string): Promise<AuthUser | null> {
-    const { data, error } = await account.get();
-
-    if (error) {
-      console.error('Error getting user profile:', error);
-      return null;
-    }
-    return data;
+    throw new Error('Not implemented');
   }
 
   // Create or update user profile in users table
@@ -89,29 +68,17 @@ export class AuthService {
     phone?: string
     avatar_url?: string
   }) {
-    const { data, error } = await account.update(userData);
-
-    if (error) throw error;
-    return data;
+    throw new Error('Not implemented');
   }
 
   // Check if user has access to store
   static async hasStoreAccess(userId: string, storeId: string): Promise<boolean> {
-    const { data, error } = await account.get();
-
-    if (error) {
-      console.error('Error checking store access:', error);
-      return false;
-    }
-    return !!data;
+    throw new Error('Not implemented');
   }
 
   // Get user's stores
   static async getUserStores(userId: string) {
-    const { data, error } = await account.get();
-
-    if (error) throw error;
-    return data;
+    throw new Error('Not implemented');
   }
 }
 

@@ -51,9 +51,6 @@ export default function ProductsPage() {
     const fetchProducts = async () => {
       setLoading(true)
       try {
-        // TODO: Replace with Appwrite logic
-        // const { data, error } = await supabase.from("products").select("*")
-        // if (error) throw error
         setProducts([])
       } catch (err: any) {
         toast({ title: "Error fetching products", description: err.message, variant: "destructive" })

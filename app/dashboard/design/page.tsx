@@ -130,39 +130,39 @@ export default function StoreDesignPage() {
   useEffect(() => {
     async function fetchStore() {
       // Get current user
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) return
+      // const { data: { user } } = await supabase.auth.getUser()
+      // if (!user) return
       // Fetch the first store owned by this user
-      const { data: store, error } = await supabase
-        .from('stores')
-        .select('*')
-        .eq('owner_id', user.id)
-        .single()
-      if (store) {
-        setStoreSlug(store.slug)
-        setStoreId(store.id)
-        // If store has settings, use as initial values
-        if (store.settings) {
-          setStoreSettings({
-            ...store.settings,
-            // fallback for missing fields
-            storeName: store.settings.storeName || store.name,
-            tagline: store.settings.tagline || '',
-            description: store.settings.description || store.description || '',
-            logo: store.settings.logo || store.logo_url || '',
-            banner: store.settings.banner || store.banner_url || '',
-            showPrices: store.settings.showPrices ?? true,
-            showStock: store.settings.showStock ?? true,
-            enableWishlist: store.settings.enableWishlist ?? true,
-            enableReviews: store.settings.enableReviews ?? true,
-            socialProof: store.settings.socialProof ?? true,
-            whatsappIntegration: store.settings.whatsappIntegration ?? true,
-          })
-          if (store.settings.customColors) setCustomColors(store.settings.customColors)
-        }
-        if (store.theme) setSelectedTheme(store.theme)
-        if (store.theme_color) setCustomColors((prev) => ({ ...prev, primary: store.theme_color }))
-      }
+      // const { data: store, error } = await supabase
+      //   .from('stores')
+      //   .select('*')
+      //   .eq('owner_id', user.id)
+      //   .single()
+      // if (store) {
+      //   setStoreSlug(store.slug)
+      //   setStoreId(store.id)
+      //   // If store has settings, use as initial values
+      //   if (store.settings) {
+      //     setStoreSettings({
+      //       ...store.settings,
+      //       // fallback for missing fields
+      //       storeName: store.settings.storeName || store.name,
+      //       tagline: store.settings.tagline || '',
+      //       description: store.settings.description || store.description || '',
+      //       logo: store.settings.logo || store.logo_url || '',
+      //       banner: store.settings.banner || store.banner_url || '',
+      //       showPrices: store.settings.showPrices ?? true,
+      //       showStock: store.settings.showStock ?? true,
+      //       enableWishlist: store.settings.enableWishlist ?? true,
+      //       enableReviews: store.settings.enableReviews ?? true,
+      //       socialProof: store.settings.socialProof ?? true,
+      //       whatsappIntegration: store.settings.whatsappIntegration ?? true,
+      //     })
+      //     if (store.settings.customColors) setCustomColors(store.settings.customColors)
+      //   }
+      //   if (store.theme) setSelectedTheme(store.theme)
+      //   if (store.theme_color) setCustomColors((prev) => ({ ...prev, primary: store.theme_color }))
+      // }
     }
     fetchStore()
   }, [])
@@ -203,19 +203,19 @@ export default function StoreDesignPage() {
         customColors,
       },
     }
-    if (!supabase) {
-      alert('Supabase not initialized')
-      return
-    }
-    const { error } = await supabase
-      .from('stores')
-      .update(updates)
-      .eq('slug', storeSlug)
-    if (error) {
-      alert('Failed to save design: ' + error.message)
-    } else {
-      alert('Design saved!')
-    }
+    // if (!supabase) {
+    //   alert('Supabase not initialized')
+    //   return
+    // }
+    // const { error } = await supabase
+    //   .from('stores')
+    //   .update(updates)
+    //   .eq('slug', storeSlug)
+    // if (error) {
+    //   alert('Failed to save design: ' + error.message)
+    // } else {
+    //   alert('Design saved!')
+    // }
   }
 
   const selectedThemeData = themes.find((t) => t.id === selectedTheme)
