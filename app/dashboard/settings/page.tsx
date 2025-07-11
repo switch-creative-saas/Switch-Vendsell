@@ -242,7 +242,7 @@ export default function SettingsPage() {
                       className="bg-background text-foreground transition-colors" 
                     />
                   </div>
-                  <div>
+                <div>
                     <Label htmlFor="lastName">Last Name</Label>
                     <Input 
                       id="lastName" 

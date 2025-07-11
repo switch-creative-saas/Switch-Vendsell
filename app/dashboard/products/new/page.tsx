@@ -203,7 +203,7 @@ export default function NewProductPage() {
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        <div>
+            <div>
           <h1 className="text-3xl font-bold tracking-tight">Add New Product</h1>
           <p className="text-muted-foreground">
             Create a new product for your store.
@@ -211,25 +211,25 @@ export default function NewProductPage() {
         </div>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Basic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Basic Information</CardTitle>
+              {/* Basic Information */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Basic Information</CardTitle>
               <CardDescription>
                 Essential details about your product
               </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+                </CardHeader>
+                <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="name">Product Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    <Label htmlFor="name">Product Name *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => handleInputChange("name", e.target.value)}
                     placeholder="Enter product name"
-                    required
-                  />
+                      required
+                    />
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="category">Category *</Label>
@@ -251,46 +251,46 @@ export default function NewProductPage() {
                     </SelectContent>
                   </Select>
                 </div>
-              </div>
+                  </div>
 
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="description">Description</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={generateDescription}
-                    disabled={isGeneratingDescription}
-                  >
+                      <Label htmlFor="description">Description</Label>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={generateDescription}
+                        disabled={isGeneratingDescription}
+                      >
                     <Bot className="mr-2 h-4 w-4" />
                     {isGeneratingDescription ? "Generating..." : "Generate with AI"}
-                  </Button>
-                </div>
-                <Textarea
-                  id="description"
+                      </Button>
+                    </div>
+                    <Textarea
+                      id="description"
                   value={formData.description}
                   onChange={(e) => handleInputChange("description", e.target.value)}
-                  placeholder="Describe your product..."
-                  rows={4}
-                />
-              </div>
+                      placeholder="Describe your product..."
+                      rows={4}
+                    />
+                  </div>
 
               <div className="space-y-2">
-                <Label htmlFor="tags">Tags</Label>
-                <Input
-                  id="tags"
-                  value={formData.tags}
-                  onChange={(e) => handleInputChange("tags", e.target.value)}
+                    <Label htmlFor="tags">Tags</Label>
+                    <Input
+                      id="tags"
+                      value={formData.tags}
+                      onChange={(e) => handleInputChange("tags", e.target.value)}
                   placeholder="Enter tags separated by commas"
                 />
-              </div>
-            </CardContent>
-          </Card>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Pricing */}
-          <Card>
-            <CardHeader>
+              {/* Pricing */}
+              <Card>
+                <CardHeader>
               <CardTitle>Pricing</CardTitle>
               <CardDescription>
                 Set your product pricing and costs
@@ -312,55 +312,55 @@ export default function NewProductPage() {
                       {isGeneratingPrice ? "Generating..." : "AI Suggest"}
                     </Button>
                   </div>
-                  <Input
-                    id="price"
-                    type="number"
-                    value={formData.price}
-                    onChange={(e) => handleInputChange("price", e.target.value)}
+                      <Input
+                        id="price"
+                        type="number"
+                        value={formData.price}
+                        onChange={(e) => handleInputChange("price", e.target.value)}
                     placeholder="0.00"
-                    required
-                  />
-                </div>
+                        required
+                      />
+                    </div>
                 <div className="space-y-2">
                   <Label htmlFor="comparePrice">Compare Price (₦)</Label>
-                  <Input
-                    id="comparePrice"
-                    type="number"
-                    value={formData.comparePrice}
-                    onChange={(e) => handleInputChange("comparePrice", e.target.value)}
+                      <Input
+                        id="comparePrice"
+                        type="number"
+                        value={formData.comparePrice}
+                        onChange={(e) => handleInputChange("comparePrice", e.target.value)}
                     placeholder="0.00"
-                  />
-                </div>
+                      />
+                    </div>
                 <div className="space-y-2">
                   <Label htmlFor="cost">Cost (₦)</Label>
-                  <Input
-                    id="cost"
-                    type="number"
-                    value={formData.cost}
-                    onChange={(e) => handleInputChange("cost", e.target.value)}
+                      <Input
+                        id="cost"
+                        type="number"
+                        value={formData.cost}
+                        onChange={(e) => handleInputChange("cost", e.target.value)}
                     placeholder="0.00"
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
 
-          {/* Inventory */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Inventory</CardTitle>
+              {/* Inventory */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Inventory</CardTitle>
               <CardDescription>
                 Manage stock levels and inventory tracking
               </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+                </CardHeader>
+                <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2">
                 <div className="space-y-2">
-                  <Label htmlFor="sku">SKU</Label>
-                  <Input
-                    id="sku"
-                    value={formData.sku}
-                    onChange={(e) => handleInputChange("sku", e.target.value)}
+                    <Label htmlFor="sku">SKU</Label>
+                    <Input
+                      id="sku"
+                      value={formData.sku}
+                      onChange={(e) => handleInputChange("sku", e.target.value)}
                     placeholder="Stock Keeping Unit"
                   />
                 </div>
@@ -384,11 +384,11 @@ export default function NewProductPage() {
                       Automatically track stock levels
                     </p>
                   </div>
-                  <Switch
-                    checked={formData.trackInventory}
-                    onCheckedChange={(checked) => handleInputChange("trackInventory", checked)}
-                  />
-                </div>
+                    <Switch
+                      checked={formData.trackInventory}
+                      onCheckedChange={(checked) => handleInputChange("trackInventory", checked)}
+                    />
+                  </div>
 
                 <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
@@ -396,52 +396,52 @@ export default function NewProductPage() {
                     <p className="text-sm text-muted-foreground">
                       Allow customers to order when out of stock
                     </p>
+                    </div>
+                    <Switch
+                      checked={formData.allowBackorder}
+                      onCheckedChange={(checked) => handleInputChange("allowBackorder", checked)}
+                    />
                   </div>
-                  <Switch
-                    checked={formData.allowBackorder}
-                    onCheckedChange={(checked) => handleInputChange("allowBackorder", checked)}
-                  />
-                </div>
 
-                <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between">
                   <div className="space-y-0.5">
                     <Label>Digital Product</Label>
                     <p className="text-sm text-muted-foreground">
                       This product is digital (no shipping required)
                     </p>
                   </div>
-                  <Switch
-                    checked={formData.isDigital}
-                    onCheckedChange={(checked) => handleInputChange("isDigital", checked)}
-                  />
-                </div>
+                    <Switch
+                      checked={formData.isDigital}
+                      onCheckedChange={(checked) => handleInputChange("isDigital", checked)}
+                    />
+                  </div>
 
-                {!formData.isDigital && (
-                  <div className="flex items-center justify-between">
+                  {!formData.isDigital && (
+                      <div className="flex items-center justify-between">
                     <div className="space-y-0.5">
                       <Label>Requires Shipping</Label>
                       <p className="text-sm text-muted-foreground">
                         This product needs to be shipped
                       </p>
                     </div>
-                    <Switch
-                      checked={formData.requiresShipping}
-                      onCheckedChange={(checked) => handleInputChange("requiresShipping", checked)}
-                    />
-                  </div>
+                        <Switch
+                          checked={formData.requiresShipping}
+                          onCheckedChange={(checked) => handleInputChange("requiresShipping", checked)}
+                        />
+                      </div>
                 )}
-              </div>
-            </CardContent>
-          </Card>
+                        </div>
+                </CardContent>
+              </Card>
 
           {/* Images */}
-          <Card>
-            <CardHeader>
+              <Card>
+                <CardHeader>
               <CardTitle>Product Images</CardTitle>
               <CardDescription>
                 Upload images of your product
               </CardDescription>
-            </CardHeader>
+                </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 {images.map((image, index) => (
@@ -499,8 +499,8 @@ export default function NewProductPage() {
                   <SelectItem value="archived">Archived</SelectItem>
                 </SelectContent>
               </Select>
-            </CardContent>
-          </Card>
+                </CardContent>
+              </Card>
 
           {/* Actions */}
           <div className="flex items-center justify-end space-x-4">

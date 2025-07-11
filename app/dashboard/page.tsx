@@ -90,7 +90,7 @@ function DashboardMetrics({ storeId }: { storeId: string }) {
       title: "Total Customers",
       value: metrics?.totalCustomers?.toString() || '0',
       change: metrics?.customersChange || 0,
-      icon: Users,
+    icon: Users,
       color: "text-purple-600",
       bgColor: "bg-purple-100 dark:bg-purple-900/20",
     },
@@ -245,14 +245,14 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <div>
+          <div>
               <h1 className="text-3xl font-bold tracking-tight">
                 Welcome back, {user.first_name || 'User'}!
               </h1>
               <p className="text-muted-foreground">
                 Here's what's happening with your store today.
               </p>
-            </div>
+          </div>
             <Badge variant="secondary" className="text-sm">
               {store.plan} Plan
             </Badge>
@@ -302,17 +302,17 @@ export default function DashboardPage() {
                   <CardDescription>
                     Latest orders from your customers
                   </CardDescription>
-                </CardHeader>
-                <CardContent>
+              </CardHeader>
+              <CardContent>
                   {/* Placeholder for Recent Orders Chart */}
                   <div className="h-64 w-full bg-muted rounded-lg animate-pulse" />
-                </CardContent>
+              </CardContent>
               </OptimizedCard>
             </Suspense>
           </LazyLoad>
         </ResponsiveGrid>
 
-        {/* Top Products */}
+          {/* Top Products */}
         <LazyLoad fallback={<ChartSkeleton />}>
           <Suspense fallback={<ChartSkeleton />}>
             <OptimizedCard className="p-6">
