@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { DatabaseService } from './database'
 
 export interface AuthUser {
   id: string
@@ -34,7 +35,7 @@ export class AuthService {
     }
   }
 
-  // Sign up with email and password
+  // Sign up with email and password and create user profile + default store
   static async signUp(email: string, password: string, userData: {
     first_name: string
     last_name: string
@@ -49,6 +50,52 @@ export class AuthService {
     })
     
     if (error) throw error
+
+    // If signup successful, create user profile and default store
+    if (data.user) {
+      try {
+        // Create user profile in users table
+        await this.upsertUserProfile({
+          id: data.user.id,
+          email: data.user.email!,
+          first_name: userData.first_name,
+          last_name: userData.last_name,
+          phone: userData.phone
+        })
+
+        // Create default store for the user
+        const storeName = `${userData.first_name}'s Store`
+        const storeSlug = `${userData.first_name.toLowerCase()}-${userData.last_name.toLowerCase()}-${Date.now()}`
+        
+        await DatabaseService.createStore({
+          name: storeName,
+          slug: storeSlug,
+          description: `Welcome to ${storeName}! Start adding your products to begin selling online.`,
+          category: 'General',
+          owner_id: data.user.id,
+          plan: 'free',
+          status: 'active',
+          settings: {
+            theme: 'modern-minimal',
+            customColors: {
+              primary: '#3B82F6',
+              secondary: '#F59E0B',
+              accent: '#10B981'
+            },
+            showPrices: true,
+            showStock: true,
+            enableWishlist: true,
+            enableReviews: true,
+            socialProof: true,
+            whatsappIntegration: true
+          }
+        })
+      } catch (profileError) {
+        console.error('Error creating user profile or store:', profileError)
+        // Don't throw here as the user is already created in auth
+      }
+    }
+    
     return data
   }
 
@@ -171,6 +218,46 @@ export class AuthService {
     
     if (error) throw error
     return data
+  }
+
+  // Get user's primary store (first store or create one if none exists)
+  static async getPrimaryStore(userId: string) {
+    const stores = await this.getUserStores(userId)
+    
+    if (stores && stores.length > 0) {
+      return stores[0]
+    }
+    
+    // If no store exists, create a default one
+    const user = await this.getUserProfile(userId)
+    if (!user) throw new Error('User not found')
+    
+    const storeName = `${user.first_name}'s Store`
+    const storeSlug = `${user.first_name?.toLowerCase()}-${user.last_name?.toLowerCase()}-${Date.now()}`
+    
+    return await DatabaseService.createStore({
+      name: storeName,
+      slug: storeSlug,
+      description: `Welcome to ${storeName}! Start adding your products to begin selling online.`,
+      category: 'General',
+      owner_id: userId,
+      plan: 'free',
+      status: 'active',
+      settings: {
+        theme: 'modern-minimal',
+        customColors: {
+          primary: '#3B82F6',
+          secondary: '#F59E0B',
+          accent: '#10B981'
+        },
+        showPrices: true,
+        showStock: true,
+        enableWishlist: true,
+        enableReviews: true,
+        socialProof: true,
+        whatsappIntegration: true
+      }
+    })
   }
 }
 
