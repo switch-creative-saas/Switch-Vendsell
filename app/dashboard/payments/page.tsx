@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useUser } from "@/contexts/UserContext"
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import {
   CreditCard,
@@ -29,112 +30,7 @@ import { Input } from "@/components/ui/input"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DashboardLayout } from "@/components/dashboard-layout"
-
-const paymentGateways = [
-  {
-    id: "paystack",
-    name: "Paystack",
-    description: "Nigeria's leading payment gateway with card, bank transfer, and USSD support",
-    logo: "/placeholder.svg?height=40&width=120",
-    isActive: true,
-    fees: "1.5% + ₦100",
-    features: ["Cards", "Bank Transfer", "USSD", "QR Code", "Mobile Money"],
-    setupStatus: "connected",
-    monthlyVolume: 1250000,
-    transactionCount: 234,
-  },
-  {
-    id: "banktransfers",
-    name: "Bank Transfers",
-    description: "Accept direct bank transfers from customers across Nigeria",
-    logo: "/placeholder.svg?height=40&width=120",
-    isActive: true,
-    fees: "1.4% + ₦100",
-    features: ["Bank Transfer"],
-    setupStatus: "connected",
-    monthlyVolume: 890000,
-    transactionCount: 156,
-  },
-  {
-    id: "monnify",
-    name: "Monnify",
-    description: "Reliable payment solutions for Nigerian businesses",
-    logo: "/placeholder.svg?height=40&width=120",
-    isActive: false,
-    fees: "1.5% + ₦50",
-    features: ["Cards", "Bank Transfer", "USSD", "Direct Debit"],
-    setupStatus: "not_connected",
-    monthlyVolume: 0,
-    transactionCount: 0,
-  },
-  {
-    id: "interswitch",
-    name: "Interswitch",
-    description: "Pioneer in Nigerian digital payments and financial technology",
-    logo: "/placeholder.svg?height=40&width=120",
-    isActive: false,
-    fees: "1.75% + ₦100",
-    features: ["Cards", "Bank Transfer", "Verve", "POS Integration"],
-    setupStatus: "pending",
-    monthlyVolume: 0,
-    transactionCount: 0,
-  },
-]
-
-const recentTransactions = [
-  {
-    id: "TXN-001",
-    orderId: "ORD-001",
-    customer: "Adunni Okafor",
-    amount: 25000,
-    gateway: "Paystack",
-    method: "Card",
-    status: "successful",
-    fee: 475,
-    netAmount: 24525,
-    timestamp: "2024-01-15T10:30:00Z",
-    reference: "PSK_123456789",
-  },
-  {
-    id: "TXN-002",
-    orderId: "ORD-002",
-    customer: "Emeka Johnson",
-    amount: 17000,
-    gateway: "Bank Transfers",
-    method: "Bank Transfer",
-    status: "successful",
-    fee: 338,
-    netAmount: 16662,
-    timestamp: "2024-01-14T15:45:00Z",
-    reference: "BNK_987654321",
-  },
-  {
-    id: "TXN-003",
-    orderId: "ORD-003",
-    customer: "Fatima Abdul",
-    amount: 27000,
-    gateway: "Paystack",
-    method: "USSD",
-    status: "pending",
-    fee: 505,
-    netAmount: 26495,
-    timestamp: "2024-01-13T12:20:00Z",
-    reference: "PSK_456789123",
-  },
-  {
-    id: "TXN-004",
-    orderId: "ORD-004",
-    customer: "Chidi Okwu",
-    amount: 45000,
-    gateway: "Paystack",
-    method: "Card",
-    status: "failed",
-    fee: 0,
-    netAmount: 0,
-    timestamp: "2024-01-12T08:15:00Z",
-    reference: "PSK_789123456",
-  },
-]
+import { DatabaseService } from "@/lib/database"
 
 const paymentMethods = [
   { name: "Debit/Credit Cards", icon: CreditCard, enabled: true, description: "Visa, Mastercard, Verve" },
@@ -192,13 +88,23 @@ const getSetupStatusColor = (status: string) => {
 }
 
 export default function PaymentsPage() {
-  const [activeTab, setActiveTab] = useState("overview")
-  const [selectedGateway, setSelectedGateway] = useState<string | null>(null)
+  const { store } = useUser()
+  const [transactions, setTransactions] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    if (!store) return
+    setLoading(true)
+    DatabaseService.getPaymentTransactions(store.id)
+      .then(setTransactions)
+      .finally(() => setLoading(false))
+  }, [store])
+  if (loading) return <div>Loading payments...</div>
+  if (!transactions.length) return <div>No payment transactions yet. When you receive payments, they will show here.</div>
 
-  const totalVolume = paymentGateways.reduce((sum, gateway) => sum + gateway.monthlyVolume, 0)
-  const totalTransactions = paymentGateways.reduce((sum, gateway) => sum + gateway.transactionCount, 0)
-  const successfulTransactions = recentTransactions.filter((t) => t.status === "successful").length
-  const successRate = (successfulTransactions / recentTransactions.length) * 100
+  const totalVolume = transactions.reduce((sum, tx) => sum + tx.amount, 0)
+  const totalTransactions = transactions.length
+  const successfulTransactions = transactions.filter((t) => t.status === "successful").length
+  const successRate = (successfulTransactions / transactions.length) * 100
 
   const stats = [
     {
@@ -252,7 +158,7 @@ export default function PaymentsPage() {
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value="overview" onValueChange={() => {}}>
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="gateways">Gateways</TabsTrigger>
@@ -306,36 +212,55 @@ export default function PaymentsPage() {
               </CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  {paymentGateways
-                    .filter((gateway) => gateway.isActive)
-                    .map((gateway) => (
-                      <div key={gateway.id} className="border rounded-lg p-4 flex flex-col justify-between h-full">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2 sm:gap-0">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-12 h-8 bg-card rounded flex items-center justify-center">
-                              <span className="text-xs font-medium">{gateway.name}</span>
-                            </div>
-                            <div>
-                              <h3 className="font-semibold text-foreground">{gateway.name}</h3>
-                              <p className="text-sm text-muted-foreground">Fee: {gateway.fees}</p>
-                            </div>
-                          </div>
-                          <Badge className={getSetupStatusColor(gateway.setupStatus)}>
-                            {gateway.setupStatus === "connected" ? "Connected" : "Pending"}
-                          </Badge>
+                  {/* This section will need to be updated to fetch and display real gateways */}
+                  <div className="border rounded-lg p-4 flex flex-col justify-between h-full">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2 sm:gap-0">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-8 bg-card rounded flex items-center justify-center">
+                          <span className="text-xs font-medium">Paystack</span>
                         </div>
-                        <div className="grid grid-cols-2 gap-4 text-sm">
-                          <div>
-                            <p className="text-muted-foreground">Monthly Volume</p>
-                            <p className="font-semibold">{formatCurrency(gateway.monthlyVolume)}</p>
-                          </div>
-                          <div>
-                            <p className="text-muted-foreground">Transactions</p>
-                            <p className="font-semibold">{gateway.transactionCount}</p>
-                          </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground">Paystack</h3>
+                          <p className="text-sm text-muted-foreground">Fee: 1.5% + ₦100</p>
                         </div>
                       </div>
-                    ))}
+                      <Badge className={getSetupStatusColor("connected")}>Connected</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Monthly Volume</p>
+                        <p className="font-semibold">{formatCurrency(1250000)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Transactions</p>
+                        <p className="font-semibold">234</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border rounded-lg p-4 flex flex-col justify-between h-full">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-3 gap-2 sm:gap-0">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-8 bg-card rounded flex items-center justify-center">
+                          <span className="text-xs font-medium">Bank Transfers</span>
+                        </div>
+                        <div>
+                          <h3 className="font-semibold text-foreground">Bank Transfers</h3>
+                          <p className="text-sm text-muted-foreground">Fee: 1.4% + ₦100</p>
+                        </div>
+                      </div>
+                      <Badge className={getSetupStatusColor("connected")}>Connected</Badge>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4 text-sm">
+                      <div>
+                        <p className="text-muted-foreground">Monthly Volume</p>
+                        <p className="font-semibold">{formatCurrency(890000)}</p>
+                      </div>
+                      <div>
+                        <p className="text-muted-foreground">Transactions</p>
+                        <p className="font-semibold">156</p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
@@ -354,7 +279,7 @@ export default function PaymentsPage() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
-                  {recentTransactions.slice(0, 5).map((transaction) => {
+                  {transactions.slice(0, 5).map((transaction) => {
                     const StatusIcon = getStatusIcon(transaction.status)
                     return (
                       <div key={transaction.id} className="flex flex-col sm:flex-row sm:items-center sm:justify-between p-3 border rounded-lg gap-2 sm:gap-0">
@@ -384,219 +309,239 @@ export default function PaymentsPage() {
           {/* Gateways Tab */}
           <TabsContent value="gateways" className="space-y-6">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {paymentGateways.map((gateway) => (
-                <Card key={gateway.id} className={gateway.isActive ? "border-blue-200" : ""}>
+              {/* This section will need to be updated to fetch and display real gateways */}
+              <Card className="border-blue-200">
+                <CardContent className="p-4 sm:p-6">
+                  <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+                    <div className="flex items-start space-x-4">
+                      <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                        <span className="text-sm font-medium">Paystack</span>
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex flex-wrap items-center space-x-2 mb-2">
+                          <h3 className="text-lg font-semibold text-gray-900">Paystack</h3>
+                          <Badge className={getSetupStatusColor("connected")}>Connected</Badge>
+                          <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Active</Badge>
+                        </div>
+                        <p className="text-gray-600 mb-3">Nigeria's leading payment gateway with card, bank transfer, and USSD support</p>
+                        <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
+                          <span>Fee: 1.5% + ₦100</span>
+                          <span>•</span>
+                          <span>Features: Cards, Bank Transfer, USSD, QR Code, Mobile Money</span>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t">
+                          <div>
+                            <p className="text-sm text-gray-600">Monthly Volume</p>
+                            <p className="font-semibold">{formatCurrency(1250000)}</p>
+                          </div>
+                          <div>
+                            <p className="text-sm text-gray-600">Transactions</p>
+                            <p className="font-semibold">234</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex flex-row sm:flex-col items-center gap-2 sm:gap-2 mt-4 sm:mt-0">
+                      <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                        <Settings className="h-4 w-4 mr-2" />
+                        Configure
+                      </Button>
+                      <Switch checked />
+                    </div>
+                  </div>
+                </Card>
+                <Card className="border-blue-200">
                   <CardContent className="p-4 sm:p-6">
                     <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
                       <div className="flex items-start space-x-4">
                         <div className="w-16 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
-                          <span className="text-sm font-medium">{gateway.name}</span>
+                          <span className="text-sm font-medium">Bank Transfers</span>
                         </div>
                         <div className="flex-1">
                           <div className="flex flex-wrap items-center space-x-2 mb-2">
-                            <h3 className="text-lg font-semibold text-gray-900">{gateway.name}</h3>
-                            <Badge className={getSetupStatusColor(gateway.setupStatus)}>
-                              {gateway.setupStatus === "connected"
-                                ? "Connected"
-                                : gateway.setupStatus === "pending"
-                                  ? "Pending"
-                                  : "Not Connected"}
-                            </Badge>
-                            {gateway.isActive && (
-                              <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Active</Badge>
-                            )}
+                            <h3 className="text-lg font-semibold text-gray-900">Bank Transfers</h3>
+                            <Badge className={getSetupStatusColor("connected")}>Connected</Badge>
+                            <Badge className="bg-blue-100 text-blue-800 hover:bg-blue-100">Active</Badge>
                           </div>
-                          <p className="text-gray-600 mb-3">{gateway.description}</p>
+                          <p className="text-gray-600 mb-3">Accept direct bank transfers from customers across Nigeria</p>
                           <div className="flex flex-wrap items-center gap-2 text-sm text-gray-600">
-                            <span>Fee: {gateway.fees}</span>
+                            <span>Fee: 1.4% + ₦100</span>
                             <span>•</span>
-                            <span>Features: {gateway.features.join(", ")}</span>
+                            <span>Features: Bank Transfer</span>
                           </div>
-                          {gateway.isActive && (
-                            <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t">
-                              <div>
-                                <p className="text-sm text-gray-600">Monthly Volume</p>
-                                <p className="font-semibold">{formatCurrency(gateway.monthlyVolume)}</p>
-                              </div>
-                              <div>
-                                <p className="text-sm text-gray-600">Transactions</p>
-                                <p className="font-semibold">{gateway.transactionCount}</p>
-                              </div>
+                          <div className="grid grid-cols-2 gap-4 mt-4 pt-4 border-t">
+                            <div>
+                              <p className="text-sm text-gray-600">Monthly Volume</p>
+                              <p className="font-semibold">{formatCurrency(890000)}</p>
                             </div>
-                          )}
+                            <div>
+                              <p className="text-sm text-gray-600">Transactions</p>
+                              <p className="font-semibold">156</p>
+                            </div>
+                          </div>
                         </div>
                       </div>
                       <div className="flex flex-row sm:flex-col items-center gap-2 sm:gap-2 mt-4 sm:mt-0">
-                        {gateway.setupStatus === "connected" ? (
-                          <>
-                            <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                              <Settings className="h-4 w-4 mr-2" />
-                              Configure
-                            </Button>
-                            <Switch checked={gateway.isActive} />
-                          </>
-                        ) : (
-                          <Button size="sm" className="bg-blue-500 hover:bg-blue-600 w-full sm:w-auto">
-                            Connect
-                          </Button>
-                        )}
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                          <Settings className="h-4 w-4 mr-2" />
+                          Configure
+                        </Button>
+                        <Switch checked />
+                      </div>
+                    </div>
+                  </Card>
+                </div>
+              </TabsContent>
+
+              {/* Transactions Tab */}
+              <TabsContent value="transactions" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                      <div>
+                        <CardTitle>All Transactions</CardTitle>
+                        <CardDescription>Complete transaction history</CardDescription>
+                      </div>
+                      <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 mt-2 sm:mt-0">
+                        <Select defaultValue="all">
+                          <SelectTrigger className="w-full sm:w-40">
+                            <SelectValue />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="successful">Successful</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="failed">Failed</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button variant="outline" size="sm" className="w-full sm:w-auto">
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Refresh
+                        </Button>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {transactions.map((transaction) => {
+                        const StatusIcon = getStatusIcon(transaction.status)
+                        return (
+                          <div key={transaction.id} className="border rounded-lg p-4">
+                            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
+                              <div className="flex items-center space-x-4">
+                                <div className="p-2 bg-gray-100 rounded-lg">
+                                  <StatusIcon className="h-5 w-5 text-gray-600" />
+                                </div>
+                                <div>
+                                  <div className="flex flex-wrap items-center space-x-2 mb-1">
+                                    <span className="font-semibold text-gray-900">{transaction.reference}</span>
+                                    <Badge className={getStatusColor(transaction.status)}>{transaction.status}</Badge>
+                                  </div>
+                                  <p className="text-sm text-gray-600">
+                                    {transaction.customer} • {transaction.gateway} • {transaction.method}
+                                  </p>
+                                  <p className="text-xs text-gray-500">
+                                    {new Date(transaction.timestamp).toLocaleString()}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right mt-2 sm:mt-0">
+                                <p className="font-semibold text-gray-900">{formatCurrency(transaction.amount)}</p>
+                                {transaction.status === "successful" && (
+                                  <>
+                                    <p className="text-sm text-gray-600">Fee: {formatCurrency(transaction.fee)}</p>
+                                    <p className="text-sm font-medium text-green-600">
+                                      Net: {formatCurrency(transaction.netAmount)}
+                                    </p>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+
+              {/* Settings Tab */}
+              <TabsContent value="settings" className="space-y-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Payment Methods</CardTitle>
+                    <CardDescription>Enable or disable payment methods for your customers</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {paymentMethods.map((method) => (
+                        <div key={method.name} className="flex items-center justify-between p-4 border rounded-lg">
+                          <div className="flex items-center space-x-3">
+                            <div className="p-2 bg-gray-100 rounded-lg">
+                              <method.icon className="h-5 w-5 text-gray-600" />
+                            </div>
+                            <div>
+                              <p className="font-medium text-gray-900">{method.name}</p>
+                              <p className="text-sm text-gray-600">{method.description}</p>
+                            </div>
+                          </div>
+                          <Switch checked={method.enabled} />
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Payment Settings</CardTitle>
+                    <CardDescription>Configure payment behavior and preferences</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-6">
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Auto-capture payments</Label>
+                          <p className="text-sm text-gray-600">Automatically capture authorized payments</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Send payment receipts</Label>
+                          <p className="text-sm text-gray-600">Email receipts to customers automatically</p>
+                        </div>
+                        <Switch defaultChecked />
+                      </div>
+
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <Label>Retry failed payments</Label>
+                          <p className="text-sm text-gray-600">Automatically retry failed payment attempts</p>
+                        </div>
+                        <Switch />
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <Label htmlFor="webhook-url">Webhook URL</Label>
+                        <Input id="webhook-url" placeholder="https://yourstore.com/webhooks/payments" className="mt-1" />
+                        <p className="text-sm text-gray-500 mt-1">URL to receive payment notifications</p>
+                      </div>
+
+                      <div>
+                        <Label htmlFor="return-url">Return URL</Label>
+                        <Input id="return-url" placeholder="https://yourstore.com/payment/success" className="mt-1" />
+                        <p className="text-sm text-gray-500 mt-1">Where customers return after payment</p>
                       </div>
                     </div>
                   </CardContent>
                 </Card>
-              ))}
-            </div>
-          </TabsContent>
-
-          {/* Transactions Tab */}
-          <TabsContent value="transactions" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                  <div>
-                    <CardTitle>All Transactions</CardTitle>
-                    <CardDescription>Complete transaction history</CardDescription>
-                  </div>
-                  <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-2 mt-2 sm:mt-0">
-                    <Select defaultValue="all">
-                      <SelectTrigger className="w-full sm:w-40">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="successful">Successful</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="failed">Failed</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button variant="outline" size="sm" className="w-full sm:w-auto">
-                      <RefreshCw className="h-4 w-4 mr-2" />
-                      Refresh
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentTransactions.map((transaction) => {
-                    const StatusIcon = getStatusIcon(transaction.status)
-                    return (
-                      <div key={transaction.id} className="border rounded-lg p-4">
-                        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-0">
-                          <div className="flex items-center space-x-4">
-                            <div className="p-2 bg-gray-100 rounded-lg">
-                              <StatusIcon className="h-5 w-5 text-gray-600" />
-                            </div>
-                            <div>
-                              <div className="flex flex-wrap items-center space-x-2 mb-1">
-                                <span className="font-semibold text-gray-900">{transaction.reference}</span>
-                                <Badge className={getStatusColor(transaction.status)}>{transaction.status}</Badge>
-                              </div>
-                              <p className="text-sm text-gray-600">
-                                {transaction.customer} • {transaction.gateway} • {transaction.method}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {new Date(transaction.timestamp).toLocaleString()}
-                              </p>
-                            </div>
-                          </div>
-                          <div className="text-right mt-2 sm:mt-0">
-                            <p className="font-semibold text-gray-900">{formatCurrency(transaction.amount)}</p>
-                            {transaction.status === "successful" && (
-                              <>
-                                <p className="text-sm text-gray-600">Fee: {formatCurrency(transaction.fee)}</p>
-                                <p className="text-sm font-medium text-green-600">
-                                  Net: {formatCurrency(transaction.netAmount)}
-                                </p>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-
-          {/* Settings Tab */}
-          <TabsContent value="settings" className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle>Payment Methods</CardTitle>
-                <CardDescription>Enable or disable payment methods for your customers</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {paymentMethods.map((method) => (
-                    <div key={method.name} className="flex items-center justify-between p-4 border rounded-lg">
-                      <div className="flex items-center space-x-3">
-                        <div className="p-2 bg-gray-100 rounded-lg">
-                          <method.icon className="h-5 w-5 text-gray-600" />
-                        </div>
-                        <div>
-                          <p className="font-medium text-gray-900">{method.name}</p>
-                          <p className="text-sm text-gray-600">{method.description}</p>
-                        </div>
-                      </div>
-                      <Switch checked={method.enabled} />
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-
-            <Card>
-              <CardHeader>
-                <CardTitle>Payment Settings</CardTitle>
-                <CardDescription>Configure payment behavior and preferences</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Auto-capture payments</Label>
-                      <p className="text-sm text-gray-600">Automatically capture authorized payments</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Send payment receipts</Label>
-                      <p className="text-sm text-gray-600">Email receipts to customers automatically</p>
-                    </div>
-                    <Switch defaultChecked />
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label>Retry failed payments</Label>
-                      <p className="text-sm text-gray-600">Automatically retry failed payment attempts</p>
-                    </div>
-                    <Switch />
-                  </div>
-                </div>
-
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="webhook-url">Webhook URL</Label>
-                    <Input id="webhook-url" placeholder="https://yourstore.com/webhooks/payments" className="mt-1" />
-                    <p className="text-sm text-gray-500 mt-1">URL to receive payment notifications</p>
-                  </div>
-
-                  <div>
-                    <Label htmlFor="return-url">Return URL</Label>
-                    <Input id="return-url" placeholder="https://yourstore.com/payment/success" className="mt-1" />
-                    <p className="text-sm text-gray-500 mt-1">Where customers return after payment</p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
-    </DashboardLayout>
-  )
-}
+              </TabsContent>
+            </Tabs>
+          </div>
+        </DashboardLayout>
+      )
+    }

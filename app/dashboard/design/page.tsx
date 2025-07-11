@@ -30,6 +30,8 @@ import { DashboardLayout } from "@/components/dashboard-layout"
 import Link from "next/link"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { useTheme } from "next-themes"
+import { useUser } from "@/contexts/UserContext"
+import { DatabaseService } from "@/lib/database"
 
 const themes = [
   {
@@ -97,6 +99,7 @@ const colorPresets = [
 ]
 
 export default function StoreDesignPage() {
+  const { store, refreshStore } = useUser()
   const [selectedTheme, setSelectedTheme] = useState("modern-minimal")
   const [previewDevice, setPreviewDevice] = useState("desktop")
   const [customColors, setCustomColors] = useState({
@@ -128,44 +131,29 @@ export default function StoreDesignPage() {
 
   // Fetch current user's store on mount
   useEffect(() => {
-    async function fetchStore() {
-      // Get current user
-      // const { data: { user } } = await supabase.auth.getUser()
-      // if (!user) return
-      // Fetch the first store owned by this user
-      // const { data: store, error } = await supabase
-      //   .from('stores')
-      //   .select('*')
-      //   .eq('owner_id', user.id)
-      //   .single()
-      // if (store) {
-      //   setStoreSlug(store.slug)
-      //   setStoreId(store.id)
-      //   // If store has settings, use as initial values
-      //   if (store.settings) {
-      //     setStoreSettings({
-      //       ...store.settings,
-      //       // fallback for missing fields
-      //       storeName: store.settings.storeName || store.name,
-      //       tagline: store.settings.tagline || '',
-      //       description: store.settings.description || store.description || '',
-      //       logo: store.settings.logo || store.logo_url || '',
-      //       banner: store.settings.banner || store.banner_url || '',
-      //       showPrices: store.settings.showPrices ?? true,
-      //       showStock: store.settings.showStock ?? true,
-      //       enableWishlist: store.settings.enableWishlist ?? true,
-      //       enableReviews: store.settings.enableReviews ?? true,
-      //       socialProof: store.settings.socialProof ?? true,
-      //       whatsappIntegration: store.settings.whatsappIntegration ?? true,
-      //     })
-      //     if (store.settings.customColors) setCustomColors(store.settings.customColors)
-      //   }
-      //   if (store.theme) setSelectedTheme(store.theme)
-      //   if (store.theme_color) setCustomColors((prev) => ({ ...prev, primary: store.theme_color }))
-      // }
+    if (!store) return
+    setStoreSlug(store.slug)
+    setStoreId(store.id)
+    if (store.settings) {
+      setStoreSettings({
+        ...store.settings,
+        storeName: store.settings.storeName || store.name,
+        tagline: store.settings.tagline || '',
+        description: store.settings.description || store.description || '',
+        logo: store.settings.logo || store.logo_url || '',
+        banner: store.settings.banner || store.banner_url || '',
+        showPrices: store.settings.showPrices ?? true,
+        showStock: store.settings.showStock ?? true,
+        enableWishlist: store.settings.enableWishlist ?? true,
+        enableReviews: store.settings.enableReviews ?? true,
+        socialProof: store.settings.socialProof ?? true,
+        whatsappIntegration: store.settings.whatsappIntegration ?? true,
+      })
+      if (store.settings.customColors) setCustomColors(store.settings.customColors)
     }
-    fetchStore()
-  }, [])
+    if (store.theme) setSelectedTheme(store.theme)
+    if (store.theme_color) setCustomColors((prev) => ({ ...prev, primary: store.theme_color }))
+  }, [store])
 
   const handleThemeSelect = (themeId: string) => {
     setSelectedTheme(themeId)
@@ -191,7 +179,7 @@ export default function StoreDesignPage() {
   }
 
   const handleSave = async () => {
-    if (!storeSlug) {
+    if (!storeId) {
       alert('No store found for this user.')
       return
     }
@@ -203,19 +191,13 @@ export default function StoreDesignPage() {
         customColors,
       },
     }
-    // if (!supabase) {
-    //   alert('Supabase not initialized')
-    //   return
-    // }
-    // const { error } = await supabase
-    //   .from('stores')
-    //   .update(updates)
-    //   .eq('slug', storeSlug)
-    // if (error) {
-    //   alert('Failed to save design: ' + error.message)
-    // } else {
-    //   alert('Design saved!')
-    // }
+    try {
+      await DatabaseService.updateStore(storeId, updates)
+      alert('Design saved!')
+      refreshStore()
+    } catch (e: any) {
+      alert('Failed to save design: ' + (e.message || e))
+    }
   }
 
   const selectedThemeData = themes.find((t) => t.id === selectedTheme)

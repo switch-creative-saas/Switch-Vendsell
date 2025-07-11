@@ -7,36 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DashboardLayout } from "@/components/dashboard-layout"
-
-const analyticsData = {
-  overview: {
-    totalRevenue: { value: 2450000, change: 12.5, trend: "up" },
-    totalOrders: { value: 1234, change: 8.2, trend: "up" },
-    totalCustomers: { value: 856, change: 15.3, trend: "up" },
-    conversionRate: { value: 3.2, change: -2.1, trend: "down" },
-  },
-  topProducts: [
-    { name: "Ankara Dress Set", sales: 45, revenue: 1125000, growth: 23.5 },
-    { name: "Traditional Cap", sales: 32, revenue: 272000, growth: 15.2 },
-    { name: "Gele Headwrap", sales: 28, revenue: 336000, growth: 8.7 },
-    { name: "Agbada Complete Set", sales: 15, revenue: 675000, growth: 45.3 },
-    { name: "Beaded Necklace", sales: 12, revenue: 180000, growth: -5.2 },
-  ],
-  salesByLocation: [
-    { state: "Lagos", orders: 456, revenue: 1200000, percentage: 49.0 },
-    { state: "Abuja", orders: 234, revenue: 650000, percentage: 26.5 },
-    { state: "Port Harcourt", orders: 123, revenue: 320000, percentage: 13.1 },
-    { state: "Kano", orders: 89, revenue: 180000, percentage: 7.3 },
-    { state: "Ibadan", orders: 67, revenue: 100000, percentage: 4.1 },
-  ],
-  trafficSources: [
-    { source: "Direct", visitors: 2340, percentage: 45.2, conversion: 4.2 },
-    { source: "Social Media", visitors: 1890, percentage: 36.5, conversion: 2.8 },
-    { source: "Google Search", visitors: 567, percentage: 11.0, conversion: 5.1 },
-    { source: "Email", visitors: 234, percentage: 4.5, conversion: 8.3 },
-    { source: "Referral", visitors: 145, percentage: 2.8, conversion: 3.7 },
-  ],
-}
+import { useUser } from "@/contexts/UserContext"
+import { useEffect, useState } from "react"
+import { DatabaseService } from "@/lib/database"
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat("en-NG", {
@@ -51,7 +24,26 @@ const formatPercentage = (value: number) => {
 }
 
 export default function AnalyticsPage() {
-  const { overview, topProducts, salesByLocation, trafficSources } = analyticsData
+  const { store } = useUser()
+  const [overview, setOverview] = useState<any>(null)
+  const [topProducts, setTopProducts] = useState<any[]>([])
+  const [salesByLocation, setSalesByLocation] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    if (!store) return
+    setLoading(true)
+    Promise.all([
+      DatabaseService.getDashboardMetrics(store.id),
+      DatabaseService.getTopProducts(store.id),
+      DatabaseService.getSalesByLocation(store.id)
+    ]).then(([metrics, products, locations]) => {
+      setOverview(metrics)
+      setTopProducts(products)
+      setSalesByLocation(locations)
+    }).finally(() => setLoading(false))
+  }, [store])
+  if (loading) return <div>Loading analytics...</div>
+  if (!overview && !topProducts.length && !salesByLocation.length) return <div>No analytics data yet. Start selling to see insights!</div>
 
   const overviewStats = [
     {
@@ -228,8 +220,9 @@ export default function AnalyticsPage() {
           </CardHeader>
           <CardContent>
             <div className="grid md:grid-cols-2 lg:grid-cols-5 gap-4">
-              {trafficSources.map((source) => (
-                <div key={source.source} className="p-4 border rounded-lg">
+              {/* Traffic sources data is not fetched in the new_code, so this section will be empty or show a placeholder */}
+              {/* For now, we'll keep the structure but it will be empty unless trafficSources data is added */}
+              {/* <div className="p-4 border rounded-lg">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-medium text-gray-900">{source.source}</h4>
                     <Badge variant="outline">{source.percentage}%</Badge>
@@ -239,8 +232,7 @@ export default function AnalyticsPage() {
                   <div className="mt-2 pt-2 border-t">
                     <p className="text-xs text-gray-500">Conversion: {source.conversion}%</p>
                   </div>
-                </div>
-              ))}
+                </div> */}
             </div>
           </CardContent>
         </Card>

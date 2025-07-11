@@ -205,4 +205,106 @@ export class DatabaseService {
     if (error) throw error
     return data
   }
+
+  // Dashboard metrics aggregation
+  static async getDashboardMetrics(storeId: string) {
+    // Total revenue
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select('total_amount')
+      .eq('store_id', storeId)
+      .eq('status', 'delivered')
+    if (ordersError) throw ordersError
+    const totalRevenue = orders.reduce((sum, o) => sum + (o.total_amount || 0), 0)
+    // Total orders
+    const totalOrders = orders.length
+    // Total customers
+    const { data: customers, error: customersError } = await supabase
+      .from('orders')
+      .select('customer_id')
+      .eq('store_id', storeId)
+    if (customersError) throw customersError
+    const uniqueCustomers = new Set(customers.map((o) => o.customer_id)).size
+    // Total products
+    const { data: products, error: productsError } = await supabase
+      .from('products')
+      .select('id')
+      .eq('store_id', storeId)
+    if (productsError) throw productsError
+    const totalProducts = products.length
+    return {
+      totalRevenue,
+      totalOrders,
+      totalCustomers: uniqueCustomers,
+      totalProducts
+    }
+  }
+
+  // Top products by sales
+  static async getTopProducts(storeId: string, limit = 5) {
+    // Get all orders for this store
+    const { data: orders, error: ordersError } = await supabase
+      .from('orders')
+      .select('items')
+      .eq('store_id', storeId)
+      .eq('status', 'delivered')
+    if (ordersError) throw ordersError
+    // Aggregate product sales
+    const productSales: Record<string, { count: number, revenue: number }> = {}
+    orders.forEach(order => {
+      (order.items || []).forEach((item: any) => {
+        if (!productSales[item.product_id]) {
+          productSales[item.product_id] = { count: 0, revenue: 0 }
+        }
+        productSales[item.product_id].count += item.quantity || 1
+        productSales[item.product_id].revenue += (item.price || 0) * (item.quantity || 1)
+      })
+    })
+    // Get product details
+    const productIds = Object.keys(productSales)
+    if (productIds.length === 0) return []
+    const { data: products, error: productsError } = await supabase
+      .from('products')
+      .select('*')
+      .in('id', productIds)
+    if (productsError) throw productsError
+    // Merge sales data
+    return products.map(p => ({
+      ...p,
+      sales: productSales[p.id].count,
+      revenue: productSales[p.id].revenue
+    })).sort((a, b) => b.sales - a.sales).slice(0, limit)
+  }
+
+  // Sales by location (based on shipping address state)
+  static async getSalesByLocation(storeId: string) {
+    const { data: orders, error } = await supabase
+      .from('orders')
+      .select('shipping_address, total_amount')
+      .eq('store_id', storeId)
+      .eq('status', 'delivered')
+    if (error) throw error
+    const locationMap: Record<string, { orders: number, revenue: number }> = {}
+    orders.forEach(order => {
+      const state = order.shipping_address?.state || 'Unknown'
+      if (!locationMap[state]) locationMap[state] = { orders: 0, revenue: 0 }
+      locationMap[state].orders += 1
+      locationMap[state].revenue += order.total_amount || 0
+    })
+    return Object.entries(locationMap).map(([state, data]) => ({
+      state,
+      ...data
+    }))
+  }
+
+  // Payment transactions for a store
+  static async getPaymentTransactions(storeId: string) {
+    const { data, error } = await supabase
+      .from('payment_transactions')
+      .select('*')
+      .eq('store_id', storeId)
+      .order('created_at', { ascending: false })
+    if (error) throw error
+    return data
+  }
 } 

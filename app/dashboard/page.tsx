@@ -25,6 +25,7 @@ import {
   Zap,
 } from "lucide-react"
 import Link from "next/link"
+import { useEffect, useState } from "react"
 
 // Loading skeleton components
 const MetricSkeleton = () => (
@@ -50,16 +51,17 @@ const ChartSkeleton = () => (
 
 // Dashboard metrics component
 function DashboardMetrics({ storeId }: { storeId: string }) {
-  const { data: metrics, isLoading } = useOptimizedQuery(
-    `dashboard-metrics-${storeId}`,
-    {
-      queryFn: () => DatabaseService.getDashboardMetrics(storeId),
-      refetchInterval: 30000, // Refetch every 30 seconds
-      staleTime: 60000, // Consider stale after 1 minute
-    }
-  )
-
-  if (isLoading) {
+  const [metrics, setMetrics] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    setLoading(true)
+    DatabaseService.getDashboardMetrics(storeId)
+      .then(setMetrics)
+      .catch((e) => setError(e.message || 'Failed to load metrics'))
+      .finally(() => setLoading(false))
+  }, [storeId])
+  if (loading) {
     return (
       <ResponsiveGrid cols={{ sm: 1, md: 2, lg: 4 }}>
         {Array.from({ length: 4 }).map((_, i) => (
@@ -68,6 +70,8 @@ function DashboardMetrics({ storeId }: { storeId: string }) {
       </ResponsiveGrid>
     )
   }
+  if (error) return <div className="text-red-600">{error}</div>
+  if (!metrics) return <div>No metrics yet. Start selling to see stats!</div>
 
   const metricData = [
     {
@@ -197,6 +201,39 @@ function QuickActions({ storeSlug }: { storeSlug: string }) {
         </OptimizedCard>
       ))}
     </ResponsiveGrid>
+  )
+}
+
+function TopProducts({ storeId }: { storeId: string }) {
+  const [products, setProducts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  useEffect(() => {
+    setLoading(true)
+    DatabaseService.getTopProducts(storeId)
+      .then(setProducts)
+      .finally(() => setLoading(false))
+  }, [storeId])
+  if (loading) return <div>Loading top products...</div>
+  if (!products.length) return <div>No top products yet.</div>
+  return (
+    <div className="space-y-4">
+      {products.map((product, i) => (
+        <div key={product.id} className="flex items-center justify-between p-3 border rounded-lg">
+          <div className="flex items-center space-x-3">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <span className="text-blue-600 font-semibold text-sm">{i + 1}</span>
+            </div>
+            <div>
+              <p className="font-medium">{product.name}</p>
+              <p className="text-sm text-muted-foreground">{product.sales} sales</p>
+            </div>
+          </div>
+          <div className="text-right">
+            <p className="font-semibold">₦{product.revenue.toLocaleString()}</p>
+          </div>
+        </div>
+      ))}
+    </div>
   )
 }
 
