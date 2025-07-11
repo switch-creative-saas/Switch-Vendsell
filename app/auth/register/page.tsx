@@ -112,7 +112,7 @@ export default function RegisterPage() {
     
     try {
       // Create user account with Supabase Auth
-      const { data: authData, error: authError } = await AuthService.signUp(
+      const authData = await AuthService.signUp(
         formData.email,
         formData.password,
         {
@@ -122,11 +122,7 @@ export default function RegisterPage() {
         }
       )
       
-      if (authError) {
-        throw new Error(authError.message)
-      }
-      
-      if (!authData.user) {
+      if (!authData || !authData.user) {
         throw new Error("Failed to create user account")
       }
       

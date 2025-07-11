@@ -26,11 +26,6 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 
-// Lazy load heavy components
-const DashboardChart = lazy(() => import("@/components/dashboard/dashboard-chart"))
-const RecentOrders = lazy(() => import("@/components/dashboard/recent-orders"))
-const TopProducts = lazy(() => import("@/components/dashboard/top-products"))
-
 // Loading skeleton components
 const MetricSkeleton = () => (
   <OptimizedCard className="p-6">
@@ -292,7 +287,8 @@ export default function DashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <DashboardChart storeId={store.id} />
+                  {/* Placeholder for Revenue Overview Chart */}
+                  <div className="h-64 w-full bg-muted rounded-lg animate-pulse" />
                 </CardContent>
               </OptimizedCard>
             </Suspense>
@@ -308,7 +304,8 @@ export default function DashboardPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  <RecentOrders storeId={store.id} />
+                  {/* Placeholder for Recent Orders Chart */}
+                  <div className="h-64 w-full bg-muted rounded-lg animate-pulse" />
                 </CardContent>
               </OptimizedCard>
             </Suspense>
@@ -326,7 +323,8 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <TopProducts storeId={store.id} />
+                {/* Placeholder for Top Products Chart */}
+                <div className="h-64 w-full bg-muted rounded-lg animate-pulse" />
               </CardContent>
             </OptimizedCard>
           </Suspense>
