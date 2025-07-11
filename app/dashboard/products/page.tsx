@@ -2,48 +2,58 @@
 
 import { useState, useEffect } from "react"
 import { motion } from "framer-motion"
-import { Plus, Search, MoreHorizontal, Edit, Trash2, Eye, Package, TrendingUp, AlertCircle } from "lucide-react"
+import {
+  Package,
+  Plus,
+  Search,
+  Filter,
+  MoreHorizontal,
+  Edit,
+  Trash2,
+  Eye,
+  TrendingUp,
+  AlertCircle,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { DashboardLayout } from "@/components/dashboard-layout"
 import Link from "next/link"
+import { DatabaseService } from "@/lib/database"
+import { AuthService } from "@/lib/auth"
 import { useToast } from "@/hooks/use-toast"
 
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "active":
-      return "bg-blue-100 text-blue-800"
-    case "draft":
-      return "bg-gray-100 text-gray-800"
-    case "out_of_stock":
-      return "bg-red-100 text-red-800"
-    default:
-      return "bg-gray-100 text-gray-800"
-  }
-}
-
-const getStatusText = (status: string) => {
-  switch (status) {
-    case "active":
-      return "Active"
-    case "draft":
-      return "Draft"
-    case "out_of_stock":
-      return "Out of Stock"
-    default:
-      return status
-  }
+interface Product {
+  id: string
+  name: string
+  description?: string
+  category: string
+  price: number
+  stock_quantity: number
+  status: string
+  images: string[]
+  created_at: string
 }
 
 export default function ProductsPage() {
   const [searchTerm, setSearchTerm] = useState("")
   const [categoryFilter, setCategoryFilter] = useState("all")
   const [statusFilter, setStatusFilter] = useState("all")
-  const [products, setProducts] = useState<any[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
   const { toast } = useToast()
 
@@ -51,15 +61,36 @@ export default function ProductsPage() {
     const fetchProducts = async () => {
       setLoading(true)
       try {
-        setProducts([])
+        const user = await AuthService.getCurrentUser()
+        if (!user) {
+          toast({ title: "Authentication required", description: "Please sign in to view products", variant: "destructive" })
+          return
+        }
+
+        // Get user's stores first
+        const stores = await AuthService.getUserStores(user.id)
+        if (stores.length === 0) {
+          setProducts([])
+          return
+        }
+
+        // Get products from all stores
+        let allProducts: Product[] = []
+        for (const store of stores) {
+          const storeProducts = await DatabaseService.getProductsByStore(store.id)
+          allProducts = [...allProducts, ...storeProducts]
+        }
+
+        setProducts(allProducts)
       } catch (err: any) {
+        console.error('Error fetching products:', err)
         toast({ title: "Error fetching products", description: err.message, variant: "destructive" })
       } finally {
         setLoading(false)
       }
     }
     fetchProducts()
-  }, [])
+  }, [toast])
 
   const filteredProducts = products.filter((product) => {
     const matchesSearch = product.name.toLowerCase().includes(searchTerm.toLowerCase())
@@ -79,53 +110,91 @@ export default function ProductsPage() {
       title: "Active Products",
       value: products.filter((p) => p.status === "active").length.toString(),
       icon: TrendingUp,
-      color: "text-blue-500",
+      color: "text-green-600",
     },
     {
       title: "Out of Stock",
-      value: products.filter((p) => p.status === "out_of_stock").length.toString(),
+      value: products.filter((p) => p.stock_quantity === 0).length.toString(),
       icon: AlertCircle,
       color: "text-red-600",
     },
   ]
 
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active":
+        return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+      case "draft":
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+      case "out_of_stock":
+        return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
+      case "archived":
+        return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+      default:
+        return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200"
+    }
+  }
+
+  const handleDeleteProduct = async (productId: string) => {
+    try {
+      await DatabaseService.deleteProduct(productId)
+      setProducts(products.filter(p => p.id !== productId))
+      toast({ title: "Product deleted", description: "Product has been successfully deleted", variant: "default" })
+    } catch (error: any) {
+      toast({ title: "Error deleting product", description: error.message, variant: "destructive" })
+    }
+  }
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading products...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
   return (
     <DashboardLayout>
-      <div className="space-y-8">
+      <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Products</h1>
-            <p className="text-muted-foreground mt-1">Manage your product catalog</p>
+            <h1 className="text-3xl font-bold tracking-tight">Products</h1>
+            <p className="text-muted-foreground">
+              Manage your product catalog across all stores
+            </p>
           </div>
           <Link href="/dashboard/products/new">
-            <Button className="bg-blue-500 hover:bg-blue-600 mt-4 sm:mt-0">
-              <Plus className="h-4 w-4 mr-2" />
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
               Add Product
             </Button>
           </Link>
         </div>
 
         {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid gap-4 md:grid-cols-3">
           {stats.map((stat, index) => (
             <motion.div
               key={stat.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              transition={{ delay: index * 0.1 }}
             >
               <Card>
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-foreground">{stat.title}</p>
-                      <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                    </div>
-                    <div className="p-3 bg-card rounded-full">
-                      <stat.icon className={`h-6 w-6 ${stat.color}`} />
-                    </div>
-                  </div>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {stat.title}
+                  </CardTitle>
+                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stat.value}</div>
                 </CardContent>
               </Card>
             </motion.div>
@@ -136,28 +205,31 @@ export default function ProductsPage() {
         <Card>
           <CardContent className="p-6">
             <div className="flex flex-col sm:flex-row gap-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  placeholder="Search products..."
-                  className="pl-10"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                />
+              <div className="flex-1">
+                <div className="relative">
+                  <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder="Search products..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10"
+                  />
+                </div>
               </div>
               <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full sm:w-48">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Categories</SelectItem>
-                  <SelectItem value="Fashion">Fashion</SelectItem>
-                  <SelectItem value="Accessories">Accessories</SelectItem>
-                  <SelectItem value="Jewelry">Jewelry</SelectItem>
+                  <SelectItem value="clothing">Clothing</SelectItem>
+                  <SelectItem value="accessories">Accessories</SelectItem>
+                  <SelectItem value="footwear">Footwear</SelectItem>
+                  <SelectItem value="electronics">Electronics</SelectItem>
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-full sm:w-48">
+                <SelectTrigger className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -165,51 +237,65 @@ export default function ProductsPage() {
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="draft">Draft</SelectItem>
                   <SelectItem value="out_of_stock">Out of Stock</SelectItem>
+                  <SelectItem value="archived">Archived</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </CardContent>
         </Card>
 
-        {/* Products Table */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Product List</CardTitle>
-            <CardDescription>
-              {filteredProducts.length} of {products.length} products
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            {loading ? (
-              <div className="flex justify-center items-center py-20">
-                <span className="text-muted-foreground">Loading products...</span>
-              </div>
-            ) : (
-              <div className="space-y-4">
-                {filteredProducts.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                    className="flex items-center justify-between p-4 border rounded-lg hover:bg-card transition-colors"
-                  >
-                    <div className="flex items-center space-x-4">
-                      <div className="w-16 h-16 bg-card rounded-lg flex items-center justify-center">
-                        <Package className="h-6 w-6 text-muted-foreground" />
-                      </div>
-                      <div>
-                        <h3 className="font-semibold text-foreground">{product.name}</h3>
-                        <p className="text-sm text-muted-foreground">{product.category}</p>
-                        <div className="flex items-center space-x-4 mt-1">
-                          <span className="text-sm font-medium text-foreground">{product.price}</span>
-                          <span className="text-sm text-muted-foreground">Stock: {product.stock}</span>
-                          <span className="text-sm text-muted-foreground">Sales: {product.sales}</span>
+        {/* Products Grid */}
+        {filteredProducts.length === 0 ? (
+          <Card className="text-center py-12">
+            <CardContent>
+              <Package className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">
+                {products.length === 0 ? "No products yet" : "No products found"}
+              </h3>
+              <p className="text-muted-foreground mb-4">
+                {products.length === 0 
+                  ? "Create your first product to start selling" 
+                  : "Try adjusting your search or filter criteria"
+                }
+              </p>
+              {products.length === 0 && (
+                <Link href="/dashboard/products/new">
+                  <Button>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Add Your First Product
+                  </Button>
+                </Link>
+              )}
+            </CardContent>
+          </Card>
+        ) : (
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {filteredProducts.map((product, index) => (
+              <motion.div
+                key={product.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: index * 0.1 }}
+              >
+                <Card className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-6">
+                    <div className="flex items-start justify-between mb-4">
+                      <div className="flex-1">
+                        <h3 className="font-semibold text-lg mb-1">{product.name}</h3>
+                        <p className="text-sm text-muted-foreground mb-2">
+                          {product.description || "No description"}
+                        </p>
+                        <div className="flex items-center gap-2 mb-2">
+                          <Badge variant="outline">{product.category}</Badge>
+                          <Badge className={getStatusColor(product.status)}>
+                            {product.status.replace('_', ' ')}
+                          </Badge>
                         </div>
+                        <p className="text-lg font-bold">₦{product.price.toLocaleString()}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Stock: {product.stock_quantity}
+                        </p>
                       </div>
-                    </div>
-                    <div className="flex items-center space-x-4">
-                      <Badge className={getStatusColor(product.status)}>{getStatusText(product.status)}</Badge>
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
                           <Button variant="ghost" size="sm">
@@ -225,37 +311,22 @@ export default function ProductsPage() {
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem className="text-red-600">
+                          <DropdownMenuItem
+                            onClick={() => handleDeleteProduct(product.id)}
+                            className="text-red-600"
+                          >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
                     </div>
-                  </motion.div>
-                ))}
-              </div>
-            )}
-
-            {filteredProducts.length === 0 && (
-              <div className="text-center py-12">
-                <Package className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-foreground mb-2">No products found</h3>
-                <p className="text-muted-foreground mb-4">
-                  {searchTerm || categoryFilter !== "all" || statusFilter !== "all"
-                    ? "Try adjusting your filters"
-                    : "Get started by adding your first product"}
-                </p>
-                <Link href="/dashboard/products/new">
-                  <Button className="bg-blue-500 hover:bg-blue-600">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Add Product
-                  </Button>
-                </Link>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        )}
       </div>
     </DashboardLayout>
   )

@@ -48,6 +48,7 @@ A complete eCommerce platform designed specifically for African creators and ent
    # Supabase Configuration
    NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
    NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+   SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 
    # Paystack Configuration
    PAYSTACK_SECRET_KEY=your-paystack-secret-key
@@ -73,15 +74,14 @@ A complete eCommerce platform designed specifically for African creators and ent
 
 2. **Run the database migrations**:
    ```bash
-   # Copy the SQL from scripts/create-tables.sql
+   # Copy the SQL from supabase-schema.sql
    # and run it in your Supabase SQL editor
    ```
 
-3. **Seed the database** (optional):
-   ```bash
-   # Copy the SQL from scripts/seed-data.sql
-   # and run it in your Supabase SQL editor
-   ```
+3. **Configure Row Level Security (RLS)**:
+   - The schema includes RLS policies for data security
+   - Users can only access their own data
+   - Store owners can only manage their own stores and products
 
 ## 📁 Project Structure
 
@@ -97,9 +97,11 @@ switch-creative-saas/
 │   └── dashboard-layout.tsx
 ├── lib/                  # Utility functions
 │   ├── supabase.ts       # Supabase client
+│   ├── auth.ts           # Authentication service
+│   ├── database.ts       # Database operations
 │   └── utils.ts          # Helper functions
 ├── public/               # Static assets
-└── scripts/              # Database scripts
+└── supabase-schema.sql   # Database schema
 ```
 
 ## 🎨 Customization
@@ -135,53 +137,31 @@ All UI components are built with shadcn/ui and can be customized in the `compone
 3. Add environment variables in Vercel dashboard
 4. Deploy!
 
-### Other Platforms
+### Environment Variables for Production
 
-The app can be deployed to any platform that supports Next.js:
-- Netlify
-- Railway
-- DigitalOcean App Platform
-- AWS Amplify
+Make sure to set these in your deployment platform:
 
-## 🔒 Security
+```env
+NEXT_PUBLIC_SUPABASE_URL=your-supabase-project-url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+PAYSTACK_SECRET_KEY=your-paystack-secret-key
+PAYSTACK_PUBLIC_KEY=your-paystack-public-key
+NEXT_PUBLIC_APP_URL=your-production-url
+```
 
-- All API routes are protected with proper validation
-- Environment variables are used for sensitive data
+## 🔒 Security Features
+
 - Supabase RLS (Row Level Security) is enabled
-- Input validation is implemented throughout
+- Users can only access their own data
+- Store owners can only manage their own stores
+- Secure authentication with Supabase Auth
+- Environment variables for sensitive data
 
-## 📱 Mobile Support
+## 📞 Support
 
-The app is fully responsive and optimized for mobile devices. All components are mobile-first and work seamlessly across all screen sizes.
-
-## 🤝 Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests if applicable
-5. Submit a pull request
+For support, email support@switchvend.com or join our Discord community.
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
-
-## 🆘 Support
-
-- **Documentation**: Check the `/docs` folder
-- **Issues**: Create an issue on GitHub
-- **Email**: support@switchvend.com
-- **WhatsApp**: +234 XXX XXX XXXX
-
-## 🗺️ Roadmap
-
-- [ ] Multi-language support
-- [ ] Advanced analytics
-- [ ] Mobile app
-- [ ] API for third-party integrations
-- [ ] White-label solutions
-- [ ] Advanced AI features
-
----
-
-Made with ❤️ in Nigeria 
+This project is licensed under the MIT License. 

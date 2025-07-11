@@ -1,314 +1,242 @@
 "use client"
+
+import { useEffect, useState } from "react"
 import { motion } from "framer-motion"
 import {
-  BarChart3,
   ShoppingBag,
-  Users,
-  TrendingUp,
-  Plus,
-  Eye,
   Package,
-  AlertCircle,
-  CheckCircle,
-  Clock,
+  TrendingUp,
+  Users,
+  DollarSign,
+  ArrowUpRight,
+  Plus,
+  Store,
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { DashboardLayout } from "@/components/dashboard-layout"
 import Link from "next/link"
+import { DashboardLayout } from "@/components/dashboard-layout"
+import { AuthService } from "@/lib/auth"
+import { DatabaseService } from "@/lib/database"
+import { useToast } from "@/hooks/use-toast"
 
-const stats = [
-  {
-    title: "Total Sales",
-    value: "₦2,450,000",
-    change: "+12.5%",
-    changeType: "positive" as const,
-    icon: TrendingUp,
-  },
-  {
-    title: "Orders",
-    value: "1,234",
-    change: "+8.2%",
-    changeType: "positive" as const,
-    icon: ShoppingBag,
-  },
-  {
-    title: "Customers",
-    value: "856",
-    change: "+15.3%",
-    changeType: "positive" as const,
-    icon: Users,
-  },
-  {
-    title: "Conversion Rate",
-    value: "3.2%",
-    change: "-2.1%",
-    changeType: "negative" as const,
-    icon: BarChart3,
-  },
-]
-
-const recentOrders = [
-  {
-    id: "ORD-001",
-    customer: "Adunni Okafor",
-    product: "Ankara Dress Set",
-    amount: "₦25,000",
-    status: "completed",
-    date: "2 hours ago",
-  },
-  {
-    id: "ORD-002",
-    customer: "Emeka Johnson",
-    product: "Traditional Cap",
-    amount: "₦8,500",
-    status: "processing",
-    date: "4 hours ago",
-  },
-  {
-    id: "ORD-003",
-    customer: "Fatima Abdul",
-    product: "Gele Headwrap",
-    amount: "₦12,000",
-    status: "pending",
-    date: "6 hours ago",
-  },
-  {
-    id: "ORD-004",
-    customer: "Chidi Okwu",
-    product: "Agbada Complete Set",
-    amount: "₦45,000",
-    status: "completed",
-    date: "1 day ago",
-  },
-]
-
-const topProducts = [
-  {
-    name: "Ankara Dress Set",
-    sales: 45,
-    revenue: "₦1,125,000",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    name: "Traditional Cap",
-    sales: 32,
-    revenue: "₦272,000",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    name: "Gele Headwrap",
-    sales: 28,
-    revenue: "₦336,000",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-  {
-    name: "Agbada Complete Set",
-    sales: 15,
-    revenue: "₦675,000",
-    image: "/placeholder.svg?height=40&width=40",
-  },
-]
-
-const getStatusColor = (status: string) => {
-  switch (status) {
-    case "completed":
-      return "bg-blue-100 text-blue-800"
-    case "processing":
-      return "bg-yellow-100 text-yellow-800"
-    case "pending":
-      return "bg-gray-100 text-gray-800"
-    default:
-      return "bg-gray-100 text-gray-800"
-  }
-}
-
-const getStatusIcon = (status: string) => {
-  switch (status) {
-    case "completed":
-      return CheckCircle
-    case "processing":
-      return Package
-    case "pending":
-      return Clock
-    default:
-      return AlertCircle
-  }
+interface DashboardStats {
+  totalStores: number
+  totalProducts: number
+  totalOrders: number
+  totalRevenue: number
 }
 
 export default function DashboardPage() {
+  const [user, setUser] = useState<any>(null)
+  const [stats, setStats] = useState<DashboardStats>({
+    totalStores: 0,
+    totalProducts: 0,
+    totalOrders: 0,
+    totalRevenue: 0
+  })
+  const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
+
+  useEffect(() => {
+    const fetchDashboardData = async () => {
+      try {
+        const currentUser = await AuthService.getCurrentUser()
+        if (!currentUser) {
+          toast({ title: "Authentication required", description: "Please sign in to access the dashboard", variant: "destructive" })
+          return
+        }
+
+        setUser(currentUser)
+
+        // Fetch user's stores
+        const stores = await AuthService.getUserStores(currentUser.id)
+        
+        // Calculate stats from stores
+        let totalProducts = 0
+        let totalOrders = 0
+        let totalRevenue = 0
+
+        for (const store of stores) {
+          const products = await DatabaseService.getProductsByStore(store.id)
+          const orders = await DatabaseService.getOrdersByStore(store.id)
+          
+          totalProducts += products.length
+          totalOrders += orders.length
+          totalRevenue += orders.reduce((sum, order) => sum + parseFloat(order.total_amount), 0)
+        }
+
+        setStats({
+          totalStores: stores.length,
+          totalProducts,
+          totalOrders,
+          totalRevenue
+        })
+      } catch (error) {
+        console.error('Error fetching dashboard data:', error)
+        toast({ title: "Error", description: "Failed to load dashboard data", variant: "destructive" })
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboardData()
+  }, [toast])
+
+  const dashboardStats = [
+    {
+      title: "Total Stores",
+      value: stats.totalStores.toString(),
+      icon: Store,
+      color: "text-blue-600",
+      description: "Your online stores"
+    },
+    {
+      title: "Total Products",
+      value: stats.totalProducts.toString(),
+      icon: Package,
+      color: "text-green-600",
+      description: "Products across all stores"
+    },
+    {
+      title: "Total Orders",
+      value: stats.totalOrders.toString(),
+      icon: ShoppingBag,
+      color: "text-purple-600",
+      description: "Orders received"
+    },
+    {
+      title: "Total Revenue",
+      value: `₦${stats.totalRevenue.toLocaleString()}`,
+      icon: DollarSign,
+      color: "text-orange-600",
+      description: "Revenue generated"
+    },
+  ]
+
+  if (loading) {
+    return (
+      <DashboardLayout>
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+            <p className="text-muted-foreground">Loading dashboard...</p>
+          </div>
+        </div>
+      </DashboardLayout>
+    )
+  }
+
   return (
     <DashboardLayout>
-      <div className="space-y-8">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+      <div className="space-y-6">
+        {/* Welcome Section */}
+        <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Welcome back! Here's what's happening with your store.</p>
+            <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
+            <p className="text-muted-foreground">
+              Welcome back, {user?.first_name || user?.email}! Here's what's happening with your stores.
+            </p>
           </div>
-          <div className="flex items-center space-x-4 mt-4 sm:mt-0">
-            <Link href="/dashboard/products/new">
-              <Button className="bg-blue-500 hover:bg-blue-600">
-                <Plus className="h-4 w-4 mr-2" />
-                Add Product
-              </Button>
-            </Link>
-            <Link href="/store/preview" target="_blank">
-              <Button variant="outline">
-                <Eye className="h-4 w-4 mr-2" />
-                View Store
-              </Button>
-            </Link>
-          </div>
+          <Link href="/dashboard/stores/new">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Create Store
+            </Button>
+          </Link>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          {stats.map((stat, index) => (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {dashboardStats.map((stat, index) => (
             <motion.div
               key={stat.title}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: index * 0.1 }}
+              transition={{ delay: index * 0.1 }}
             >
-              <Card className="dark:bg-[#18181b]">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-muted-foreground">{stat.title}</p>
-                      <p className="text-2xl font-bold text-foreground">{stat.value}</p>
-                      <p className={`text-sm ${stat.changeType === "positive" ? "text-blue-500" : "text-red-600"}`}>
-                        {stat.change} from last month
-                      </p>
-                    </div>
-                    <div
-                      className={`p-3 rounded-full ${stat.changeType === "positive" ? "bg-blue-100" : "bg-red-100"}`}
-                    >
-                      <stat.icon
-                        className={`h-6 w-6 ${stat.changeType === "positive" ? "text-blue-500" : "text-red-600"}`}
-                      />
-                    </div>
-                  </div>
+              <Card>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">
+                    {stat.title}
+                  </CardTitle>
+                  <stat.icon className={`h-4 w-4 ${stat.color}`} />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold">{stat.value}</div>
+                  <p className="text-xs text-muted-foreground">
+                    {stat.description}
+                  </p>
                 </CardContent>
               </Card>
             </motion.div>
           ))}
         </div>
 
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* Recent Orders */}
-          <div className="lg:col-span-2">
-            <Card className="dark:bg-[#18181b]">
-              <CardHeader className="flex flex-row items-center justify-between">
-                <div>
-                  <CardTitle>Recent Orders</CardTitle>
-                  <CardDescription>Your latest customer orders</CardDescription>
-                </div>
-                <Link href="/dashboard/orders">
-                  <Button variant="outline" size="sm">
-                    View All
-                  </Button>
-                </Link>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {recentOrders.map((order) => {
-                    const StatusIcon = getStatusIcon(order.status)
-                    return (
-                      <div key={order.id} className="flex items-center justify-between p-4 border rounded-lg bg-card dark:bg-[#232326]">
-                        <div className="flex items-center space-x-4">
-                          <div className="p-2 bg-muted rounded-lg">
-                            <StatusIcon className="h-4 w-4 text-muted-foreground" />
-                          </div>
-                          <div>
-                            <p className="font-medium text-foreground">{order.customer}</p>
-                            <p className="text-sm text-muted-foreground">{order.product}</p>
-                            <p className="text-xs text-muted-foreground">{order.date}</p>
-                          </div>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold text-foreground">{order.amount}</p>
-                          <Badge className={getStatusColor(order.status) + ' dark:bg-blue-900 dark:text-blue-200'}>{order.status}</Badge>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Top Products */}
-          <div>
-            <Card className="dark:bg-[#18181b]">
+        {/* Quick Actions */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+            <Link href="/dashboard/stores">
               <CardHeader>
-                <CardTitle>Top Products</CardTitle>
-                <CardDescription>Best performing products this month</CardDescription>
+                <CardTitle className="flex items-center">
+                  <Store className="mr-2 h-5 w-5" />
+                  Manage Stores
+                </CardTitle>
+                <CardDescription>
+                  View and manage your online stores
+                </CardDescription>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {topProducts.map((product, index) => (
-                    <div key={product.name} className="flex items-center space-x-4">
-                      <div className="w-10 h-10 bg-muted rounded-lg flex items-center justify-center">
-                        <Package className="h-5 w-5 text-muted-foreground" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium text-foreground truncate">{product.name}</p>
-                        <p className="text-sm text-muted-foreground">{product.sales} sales</p>
-                        <div className="w-full bg-muted rounded-full h-2 mt-1">
-                          <div
-                            className="bg-blue-500 h-2 rounded-full"
-                            style={{ width: `${(product.sales / 50) * 100}%` }}
-                          />
-                        </div>
-                      </div>
-                      <div className="text-right">
-                        <p className="font-semibold text-foreground">{product.revenue}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+            </Link>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+            <Link href="/dashboard/products">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Package className="mr-2 h-5 w-5" />
+                  Manage Products
+                </CardTitle>
+                <CardDescription>
+                  Add and manage your products
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
+
+          <Card className="cursor-pointer hover:shadow-md transition-shadow">
+            <Link href="/dashboard/orders">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <ShoppingBag className="mr-2 h-5 w-5" />
+                  View Orders
+                </CardTitle>
+                <CardDescription>
+                  Track and manage customer orders
+                </CardDescription>
+              </CardHeader>
+            </Link>
+          </Card>
         </div>
 
-        {/* Quick Actions */}
-        <Card className="dark:bg-[#18181b]">
-          <CardHeader>
-            <CardTitle>Quick Actions</CardTitle>
-            <CardDescription>Common tasks to manage your store</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <Link href="/dashboard/products/new">
-                <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
-                  <Plus className="h-6 w-6" />
-                  <span>Add Product</span>
+        {/* Empty State */}
+        {stats.totalStores === 0 && (
+          <Card className="text-center py-12">
+            <CardContent>
+              <Store className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No stores yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Create your first store to start selling online
+              </p>
+              <Link href="/dashboard/stores/new">
+                <Button>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Your First Store
                 </Button>
               </Link>
-              <Link href="/dashboard/orders">
-                <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
-                  <ShoppingBag className="h-6 w-6" />
-                  <span>View Orders</span>
-                </Button>
-              </Link>
-              <Link href="/dashboard/customers">
-                <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
-                  <Users className="h-6 w-6" />
-                  <span>Customers</span>
-                </Button>
-              </Link>
-              <Link href="/dashboard/analytics">
-                <Button variant="outline" className="h-20 flex flex-col items-center justify-center space-y-2">
-                  <BarChart3 className="h-6 w-6" />
-                  <span>Analytics</span>
-                </Button>
-              </Link>
-            </div>
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </DashboardLayout>
   )

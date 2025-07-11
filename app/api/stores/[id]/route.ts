@@ -1,21 +1,18 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { AuthService } from "@/lib/auth"
-// import { validateEnv } from '@/lib/config'
-// import { DatabaseService } from '@/lib/database'
+import { DatabaseService } from '@/lib/database'
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    // validateEnv()
-    
-    // const store = await DatabaseService.getStore(params.id)
-    // if (!store) {
-    //   return NextResponse.json({ error: 'Store not found' }, { status: 404 })
-    // }
+    const store = await DatabaseService.getStore(params.id)
+    if (!store) {
+      return NextResponse.json({ error: 'Store not found' }, { status: 404 })
+    }
 
-    return NextResponse.json({ id: params.id, name: 'Sample Store' })
+    return NextResponse.json(store)
   } catch (error) {
     console.error('Error fetching store:', error)
     return NextResponse.json(
@@ -30,8 +27,6 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
-    // validateEnv()
-    
     const user = await AuthService.getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -61,8 +56,8 @@ export async function PUT(
       updates[key as keyof typeof updates] === undefined && delete updates[key as keyof typeof updates]
     )
 
-    // const store = await DatabaseService.updateStore(params.id, updates)
-    return NextResponse.json({ id: params.id, ...updates })
+    const store = await DatabaseService.updateStore(params.id, updates)
+    return NextResponse.json(store)
   } catch (error: any) {
     console.error('Error updating store:', error)
     
@@ -85,8 +80,6 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // validateEnv()
-    
     const user = await AuthService.getCurrentUser()
     if (!user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
@@ -98,7 +91,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    // await DatabaseService.deleteStore(params.id)
+    await DatabaseService.deleteStore(params.id)
     return NextResponse.json({ message: 'Store deleted successfully' })
   } catch (error) {
     console.error('Error deleting store:', error)
