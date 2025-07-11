@@ -55,74 +55,74 @@ export default function LoginPage() {
           <CardDescription className="text-center">
             Enter your credentials to access your dashboard
           </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-4">
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
-              <div className="relative">
+                  <div className="relative">
                 <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="email"
-                  type="email"
+                    <Input
+                      id="email"
+                      type="email"
                   placeholder="Enter your email"
-                  value={formData.email}
-                  onChange={(e) => handleInputChange("email", e.target.value)}
+                      value={formData.email}
+                      onChange={(e) => handleInputChange("email", e.target.value)}
                   className="pl-10"
-                  required
-                />
-              </div>
-            </div>
+                      required
+                    />
+                  </div>
+                </div>
             <div className="space-y-2">
-              <Label htmlFor="password">Password</Label>
-              <div className="relative">
+                  <Label htmlFor="password">Password</Label>
+                  <div className="relative">
                 <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={formData.password}
-                  onChange={(e) => handleInputChange("password", e.target.value)}
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={formData.password}
+                      onChange={(e) => handleInputChange("password", e.target.value)}
                   className="pl-10 pr-10"
-                  required
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
+                      required
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
                   className="absolute right-3 top-3 text-gray-400 hover:text-gray-600"
-                >
-                  {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                </button>
-              </div>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-2">
-                <Checkbox
-                  id="rememberMe"
-                  checked={formData.rememberMe}
-                  onCheckedChange={(checked) => handleInputChange("rememberMe", checked as boolean)}
-                />
-                <Label htmlFor="rememberMe" className="text-sm">
-                  Remember me
-                </Label>
-              </div>
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
+                  </div>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox
+                      id="rememberMe"
+                      checked={formData.rememberMe}
+                      onCheckedChange={(checked) => handleInputChange("rememberMe", checked as boolean)}
+                    />
+                    <Label htmlFor="rememberMe" className="text-sm">
+                      Remember me
+                    </Label>
+                  </div>
               <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:underline">
-                Forgot password?
-              </Link>
-            </div>
+                    Forgot password?
+                  </Link>
+                </div>
             <Button type="submit" className="w-full" disabled={loading}>
               {loading ? "Signing in..." : "Sign in"}
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
-          </form>
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Button>
+              </form>
           <div className="mt-6 text-center">
             <p className="text-sm text-gray-600">
-              Don't have an account?{" "}
+            Don't have an account?{" "}
               <Link href="/auth/signup" className="text-blue-600 hover:underline font-medium">
                 Sign up
-              </Link>
-            </p>
-          </div>
+            </Link>
+          </p>
+        </div>
         </CardContent>
       </Card>
     </div>

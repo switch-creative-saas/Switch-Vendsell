@@ -63,62 +63,62 @@ export default function OrdersPage() {
     }).format(amount)
   }
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "delivered":
-        return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300"
-      case "shipped":
-        return "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300"
-      case "processing":
-        return "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300"
-      case "pending":
-        return "bg-muted text-foreground/80"
-      case "cancelled":
-        return "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300"
-      default:
-        return "bg-muted text-foreground/80"
-    }
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "delivered":
+      return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300"
+    case "shipped":
+      return "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300"
+    case "processing":
+      return "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300"
+    case "pending":
+      return "bg-muted text-foreground/80"
+    case "cancelled":
+      return "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300"
+    default:
+      return "bg-muted text-foreground/80"
   }
+}
 
-  const getPaymentStatusColor = (status: string) => {
-    switch (status) {
-      case "paid":
-        return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300"
-      case "pending":
-        return "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300"
-      case "failed":
-        return "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300"
-      case "refunded":
+const getPaymentStatusColor = (status: string) => {
+  switch (status) {
+    case "paid":
+      return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300"
+    case "pending":
+      return "bg-yellow-100 dark:bg-yellow-900 text-yellow-800 dark:text-yellow-300"
+    case "failed":
+      return "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300"
+    case "refunded":
         return "bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-300"
-      default:
-        return "bg-muted text-foreground/80"
-    }
+    default:
+      return "bg-muted text-foreground/80"
   }
+}
 
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case "delivered":
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case "delivered":
         return <CheckCircle className="h-4 w-4" />
-      case "shipped":
+    case "shipped":
         return <Truck className="h-4 w-4" />
-      case "processing":
+    case "processing":
         return <Package className="h-4 w-4" />
-      case "cancelled":
+    case "cancelled":
         return <XCircle className="h-4 w-4" />
-      default:
+    default:
         return <Package className="h-4 w-4" />
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-NG", {
-      year: "numeric",
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    })
-  }
+const formatDate = (dateString: string) => {
+  return new Date(dateString).toLocaleDateString("en-NG", {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  })
+}
 
   const filteredOrders = orders.filter((order) => {
     const matchesSearch = order.order_number.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -203,21 +203,21 @@ export default function OrdersPage() {
 
         {/* Orders List */}
         {filteredOrders.length > 0 ? (
-          <div className="space-y-4">
+            <div className="space-y-4">
             {filteredOrders.map((order) => (
-              <motion.div
-                key={order.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                  <motion.div
+                    key={order.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
-              >
+                  >
                 <Card>
                   <CardContent className="p-6">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center space-x-4">
                         <div className="flex items-center space-x-2">
                           {getStatusIcon(order.status)}
-                          <div>
+                        <div>
                             <h3 className="font-semibold">{order.order_number}</h3>
                             <p className="text-sm text-muted-foreground">
                               Customer ID: {order.customer_id.slice(0, 8)}...
@@ -267,8 +267,8 @@ export default function OrdersPage() {
                   </CardContent>
                 </Card>
               </motion.div>
-            ))}
-          </div>
+                        ))}
+                      </div>
         ) : (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
@@ -291,8 +291,8 @@ export default function OrdersPage() {
                 <span>Showing {filteredOrders.length} of {orders.length} orders</span>
                 <span>Total Value: {formatCurrency(filteredOrders.reduce((sum, order) => sum + order.total_amount, 0))}</span>
               </div>
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
         )}
       </div>
     </DashboardLayout>

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Offline - Switch VendSell</title>
+  <link rel="icon" href="/favicon.ico" />
+  <style>
+    body {
+      font-family: 'Inter', Arial, sans-serif;
+      background: #f3f4f6;
+      color: #22223b;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+    }
+    .offline-container {
+      background: #fff;
+      border-radius: 1rem;
+      box-shadow: 0 2px 16px rgba(0,0,0,0.07);
+      padding: 2.5rem 2rem;
+      max-width: 400px;
+      text-align: center;
+    }
+    .offline-icon {
+      font-size: 3rem;
+      color: #3b82f6;
+      margin-bottom: 1rem;
+    }
+    .offline-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      margin-bottom: 0.5rem;
+    }
+    .offline-desc {
+      color: #6b7280;
+      margin-bottom: 1.5rem;
+    }
+    .offline-btn {
+      display: inline-block;
+      background: #3b82f6;
+      color: #fff;
+      padding: 0.75rem 1.5rem;
+      border-radius: 0.5rem;
+      text-decoration: none;
+      font-weight: 600;
+      transition: background 0.2s;
+    }
+    .offline-btn:hover {
+      background: #2563eb;
+    }
+  </style>
+</head>
+<body>
+  <div class="offline-container">
+    <div class="offline-icon">🔌</div>
+    <div class="offline-title">You're Offline</div>
+    <div class="offline-desc">
+      It looks like you lost your internet connection.<br />
+      Please check your network and try again.
+    </div>
+    <a href="/" class="offline-btn">Retry</a>
+  </div>
+</body>
+</html> 

@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useCallback, memo } from "react"
 import {
   BarChart3,
   ShoppingBag,
@@ -38,7 +38,9 @@ import { DarkModeToggle } from "@/components/ui/toggle"
 import { useToast } from "@/hooks/use-toast"
 import { useUser } from "@/contexts/UserContext"
 import { AuthService } from "@/lib/auth"
+import { ResponsiveContainer } from "@/components/ui/responsive-container"
 
+// Memoized navigation items to prevent unnecessary re-renders
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
   { name: "Products", href: "/dashboard/products", icon: Package },
@@ -49,6 +51,28 @@ const navigation = [
   { name: "AI Tools", href: "/dashboard/ai", icon: Bot },
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ]
+
+// Memoized navigation item component
+const NavigationItem = memo(({ item, isActive, onClick }: {
+  item: typeof navigation[0]
+  isActive: boolean
+  onClick: () => void
+}) => (
+  <Link
+    href={item.href}
+    className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors w-full ${
+      isActive
+        ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border border-blue-200"
+        : "text-muted-foreground hover:text-primary hover:bg-muted"
+    }`}
+    onClick={onClick}
+  >
+    <item.icon className={`mr-3 h-5 w-5 ${isActive ? "text-blue-500" : ""}`} />
+    {item.name}
+  </Link>
+))
+
+NavigationItem.displayName = 'NavigationItem'
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -62,7 +86,8 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const { toast } = useToast()
   const { user, store, loading } = useUser()
 
-  async function handleSignOut() {
+  // Memoized sign out handler
+  const handleSignOut = useCallback(async () => {
     setSigningOut(true)
     try {
       await AuthService.signOut()
@@ -72,7 +97,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     } finally {
       setSigningOut(false)
     }
-  }
+  }, [router, toast])
+
+  // Memoized sidebar close handler
+  const closeSidebar = useCallback(() => setSidebarOpen(false), [])
 
   // Show loading state while user data is being fetched
   if (loading) {
@@ -101,7 +129,10 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300 flex">
       {/* Mobile sidebar overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden" onClick={() => setSidebarOpen(false)} />
+        <div 
+          className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden" 
+          onClick={closeSidebar}
+        />
       )}
 
       {/* Sidebar */}
@@ -116,19 +147,20 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             <span className="text-xl font-bold">Switch VendSell</span>
           </Link>
         </div>
+        
         {/* Store Info */}
         <div className="p-6 border-b bg-muted transition-colors duration-300">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-orange-600 rounded-lg flex items-center justify-center">
               <Store className="h-5 w-5 text-white" />
             </div>
-            <div>
-              <p className="font-semibold">{storeName}</p>
-              <p className="text-sm text-muted-foreground">{storeSlug}.switch.store</p>
+            <div className="min-w-0 flex-1">
+              <p className="font-semibold truncate">{storeName}</p>
+              <p className="text-sm text-muted-foreground truncate">{storeSlug}.switch.store</p>
             </div>
           </div>
           <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-100 capitalize">
+            <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 hover:bg-blue-100 capitalize w-fit">
               {storePlan} Plan
             </Badge>
             <Link href={`/store/${storeSlug}`} target="_blank" className="w-full sm:w-auto">
@@ -139,26 +171,22 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             </Link>
           </div>
         </div>
+        
         {/* Navigation */}
         <nav className="flex-1 px-2 py-4 space-y-2">
           {navigation.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
             return (
-              <Link
+              <NavigationItem
                 key={item.name}
-                href={item.href}
-                className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors w-full ${
-                  isActive
-                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border border-blue-200"
-                    : "text-muted-foreground hover:text-primary hover:bg-muted"
-                }`}
-              >
-                <item.icon className={`mr-3 h-5 w-5 ${isActive ? "text-blue-500" : ""}`} />
-                {item.name}
-              </Link>
+                item={item}
+                isActive={isActive}
+                onClick={closeSidebar}
+              />
             )
           })}
         </nav>
+        
         {/* Help Section */}
         <div className="p-4 border-t w-full">
           <div className="bg-muted rounded-lg p-4 transition-colors duration-300 flex flex-col gap-2 items-start w-full">
@@ -180,7 +208,12 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         <header className="bg-background/80 shadow-sm border-b transition-colors duration-300 sticky top-0 z-40">
           <div className="flex items-center justify-between h-16 px-3 sm:px-6">
             <div className="flex items-center space-x-4">
-              <Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="lg:hidden" 
+                onClick={() => setSidebarOpen(true)}
+              >
                 <Menu className="h-5 w-5" />
               </Button>
               {/* Search */}
@@ -212,7 +245,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
                     <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
                       <User className="h-4 w-4 text-white" />
                     </div>
-                    <span className="hidden md:block font-medium">{userName}</span>
+                    <span className="hidden md:block font-medium truncate max-w-32">{userName}</span>
                   </Button>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" className="w-56">
@@ -242,25 +275,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           }`}
         >
           <div className="flex items-center justify-between h-16 px-6 border-b">
-            <Link href="/" className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-sm">S</span>
-              </div>
-              <span className="text-xl font-bold">Switch VendSell</span>
-            </Link>
-            <Button variant="ghost" size="sm" onClick={() => setSidebarOpen(false)}>
-              <X className="h-5 w-5" />
-            </Button>
-          </div>
-          {/* Store Info */}
+              <Link href="/" className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold text-sm">S</span>
+                </div>
+                <span className="text-xl font-bold">Switch VendSell</span>
+              </Link>
+            <Button variant="ghost" size="sm" onClick={closeSidebar}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            {/* Store Info */}
           <div className="p-6 border-b bg-muted">
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-orange-600 rounded-lg flex items-center justify-center">
-                <Store className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <p className="font-semibold">{storeName}</p>
-                <p className="text-sm text-muted-foreground">{storeSlug}.switch.store</p>
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-orange-600 rounded-lg flex items-center justify-center">
+                  <Store className="h-5 w-5 text-white" />
+                </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-semibold truncate">{storeName}</p>
+                <p className="text-sm text-muted-foreground truncate">{storeSlug}.switch.store</p>
               </div>
             </div>
             <div className="mt-4 flex flex-col gap-2">
@@ -269,37 +302,32 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               </Badge>
               <Link href={`/store/${storeSlug}`} target="_blank">
                 <Button variant="outline" size="sm" className="w-full">
-                  <Globe className="h-4 w-4 mr-1" />
-                  View Store
-                </Button>
-              </Link>
-            </div>
-          </div>
-          {/* Navigation */}
-          <nav className="flex-1 px-2 py-4 space-y-2">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
-              return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-colors w-full ${
-                    isActive
-                      ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200 border border-blue-200"
-                      : "text-muted-foreground hover:text-primary hover:bg-muted"
-                  }`}
-                  onClick={() => setSidebarOpen(false)}
-                >
-                  <item.icon className={`mr-3 h-5 w-5 ${isActive ? "text-blue-500" : ""}`} />
-                  {item.name}
+                    <Globe className="h-4 w-4 mr-1" />
+                    View Store
+                  </Button>
                 </Link>
-              )
-            })}
-          </nav>
+              </div>
+            </div>
+            {/* Navigation */}
+            <nav className="flex-1 px-2 py-4 space-y-2">
+              {navigation.map((item) => {
+                const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
+                return (
+                <NavigationItem
+                    key={item.name}
+                  item={item}
+                  isActive={isActive}
+                  onClick={closeSidebar}
+                />
+                )
+              })}
+            </nav>
         </aside>
 
         {/* Page content */}
-        <div className="flex-1 p-6">{children}</div>
+        <ResponsiveContainer className="flex-1 p-4 sm:p-6">
+          {children}
+        </ResponsiveContainer>
       </main>
     </div>
   )

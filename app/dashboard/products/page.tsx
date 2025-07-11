@@ -51,10 +51,10 @@ export default function ProductsPage() {
       setProducts(productsData)
     } catch (error) {
       console.error('Error loading products:', error)
-    } finally {
-      setLoading(false)
+      } finally {
+        setLoading(false)
+      }
     }
-  }
 
   const handleDeleteProduct = async (productId: string) => {
     if (!confirm('Are you sure you want to delete this product?')) return
@@ -186,10 +186,10 @@ export default function ProductsPage() {
         {filteredProducts.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredProducts.map((product) => (
-              <motion.div
-                key={product.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                  <motion.div
+                    key={product.id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
                 <Card className="overflow-hidden">
@@ -267,9 +267,9 @@ export default function ProductsPage() {
                     </div>
                   </CardContent>
                 </Card>
-              </motion.div>
-            ))}
-          </div>
+                  </motion.div>
+                ))}
+              </div>
         ) : (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
@@ -300,8 +300,8 @@ export default function ProductsPage() {
                 <span>Showing {filteredProducts.length} of {products.length} products</span>
                 <span>Total Value: {formatCurrency(filteredProducts.reduce((sum, p) => sum + (p.price * p.stock_quantity), 0))}</span>
               </div>
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
         )}
       </div>
     </DashboardLayout>

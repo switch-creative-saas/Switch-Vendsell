@@ -116,8 +116,8 @@ export default function RegisterPage() {
         formData.email,
         formData.password,
         {
-          first_name: formData.firstName,
-          last_name: formData.lastName,
+            first_name: formData.firstName,
+            last_name: formData.lastName,
           phone: formData.phone
         }
       )
@@ -141,7 +141,7 @@ export default function RegisterPage() {
           plan: 'free',
           status: 'active',
           settings: {
-            theme: 'modern-minimal',
+          theme: 'modern-minimal',
             customColors: {
               primary: '#3B82F6',
               secondary: '#F59E0B',
@@ -437,41 +437,41 @@ export default function RegisterPage() {
                       
                       <div className="space-y-3">
                         <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="agreeTerms"
-                            checked={formData.agreeTerms}
-                            onCheckedChange={(checked) => handleInputChange("agreeTerms", checked as boolean)}
-                            required
-                          />
+                        <Checkbox
+                          id="agreeTerms"
+                          checked={formData.agreeTerms}
+                          onCheckedChange={(checked) => handleInputChange("agreeTerms", checked as boolean)}
+                          required
+                        />
                           <Label htmlFor="agreeTerms" className="text-sm">
-                            I agree to the{" "}
+                          I agree to the{" "}
                             <button
                               type="button"
                               onClick={() => setTermsOpen(true)}
                               className="text-blue-500 hover:underline"
                             >
-                              Terms of Service
-                            </button>{" "}
-                            and{" "}
+                            Terms of Service
+                          </button>{" "}
+                          and{" "}
                             <button
                               type="button"
                               onClick={() => setTermsOpen(true)}
                               className="text-blue-500 hover:underline"
                             >
-                              Privacy Policy
+                            Privacy Policy
                             </button>
-                          </Label>
-                        </div>
+                        </Label>
+                      </div>
                         
                         <div className="flex items-center space-x-2">
-                          <Checkbox
-                            id="agreeMarketing"
-                            checked={formData.agreeMarketing}
-                            onCheckedChange={(checked) => handleInputChange("agreeMarketing", checked as boolean)}
-                          />
+                        <Checkbox
+                          id="agreeMarketing"
+                          checked={formData.agreeMarketing}
+                          onCheckedChange={(checked) => handleInputChange("agreeMarketing", checked as boolean)}
+                        />
                           <Label htmlFor="agreeMarketing" className="text-sm">
                             I agree to receive marketing communications from Switch VendSell
-                          </Label>
+                        </Label>
                         </div>
                       </div>
                     </div>
@@ -483,7 +483,7 @@ export default function RegisterPage() {
                       <Button type="submit" disabled={loading} className="flex-1">
                         {loading ? "Creating Account..." : "Create Account"}
                       </Button>
-                    </div>
+                          </div>
                   </>
                 )}
               </form>

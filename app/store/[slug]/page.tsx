@@ -110,53 +110,53 @@ type ThemeKey = keyof typeof themeStyles;
 // --- Real fetch function using Supabase ---
 const fetchStoreData = async (slug: string) => {
   try {
-    // Fetch store by slug
-    const { data: store, error } = await supabase
-      .from('stores')
-      .select('*')
-      .eq('slug', slug)
-      .single()
+  // Fetch store by slug
+  const { data: store, error } = await supabase
+    .from('stores')
+    .select('*')
+    .eq('slug', slug)
+    .single()
     
     if (error || !store) {
       console.error('Error fetching store:', error)
       return null
     }
 
-    // Fetch products for this store
-    const { data: products, error: prodError } = await supabase
-      .from('products')
-      .select('*')
-      .eq('store_id', store.id)
+  // Fetch products for this store
+  const { data: products, error: prodError } = await supabase
+    .from('products')
+    .select('*')
+    .eq('store_id', store.id)
       .eq('status', 'active')
     
     if (prodError) {
       console.error('Error fetching products:', prodError)
     }
 
-    return {
-      name: store.name,
+  return {
+    name: store.name,
       tagline: store.settings?.tagline || store.description || '',
-      description: store.settings?.description || store.description || '',
+    description: store.settings?.description || store.description || '',
       selectedTheme: store.settings?.theme || store.theme || 'modern-minimal',
-      customColors: store.settings?.customColors || (store.theme_color ? { primary: store.theme_color, secondary: '#F59E0B', accent: '#10B981' } : undefined),
-      logo: store.settings?.logo || store.logo_url || '',
-      banner: store.settings?.banner || store.banner_url || '',
-      showPrices: store.settings?.showPrices ?? true,
-      showStock: store.settings?.showStock ?? true,
-      enableWishlist: store.settings?.enableWishlist ?? true,
-      enableReviews: store.settings?.enableReviews ?? true,
-      socialProof: store.settings?.socialProof ?? true,
-      whatsappIntegration: store.settings?.whatsappIntegration ?? true,
-      products: products && products.length > 0 ? products.map((p) => ({
-        id: p.id,
-        name: p.name,
+    customColors: store.settings?.customColors || (store.theme_color ? { primary: store.theme_color, secondary: '#F59E0B', accent: '#10B981' } : undefined),
+    logo: store.settings?.logo || store.logo_url || '',
+    banner: store.settings?.banner || store.banner_url || '',
+    showPrices: store.settings?.showPrices ?? true,
+    showStock: store.settings?.showStock ?? true,
+    enableWishlist: store.settings?.enableWishlist ?? true,
+    enableReviews: store.settings?.enableReviews ?? true,
+    socialProof: store.settings?.socialProof ?? true,
+    whatsappIntegration: store.settings?.whatsappIntegration ?? true,
+    products: products && products.length > 0 ? products.map((p) => ({
+      id: p.id,
+      name: p.name,
         description: p.description,
-        price: p.price,
+      price: p.price,
         compare_price: p.compare_price,
         stock_quantity: p.stock_quantity,
-        image: (p.images && p.images.length > 0) ? p.images[0] : 'https://source.unsplash.com/random/400x400',
-        rating: 5,
-      })) : [],
+      image: (p.images && p.images.length > 0) ? p.images[0] : 'https://source.unsplash.com/random/400x400',
+      rating: 5,
+    })) : [],
     }
   } catch (error) {
     console.error('Error in fetchStoreData:', error)
@@ -185,7 +185,7 @@ export default function PublicStorePage() {
     
     fetchStoreData(slug).then((data) => {
       if (data) {
-        setStore(data)
+      setStore(data)
       } else {
         setError("Store not found")
       }
@@ -248,7 +248,7 @@ export default function PublicStorePage() {
       <div className="max-w-6xl mx-auto px-4 pb-8">
         {store.products.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-            {store.products.map((product: any) => (
+          {store.products.map((product: any) => (
               <Card key={product.id} className={`h-full flex flex-col ${currentTheme.card} hover:shadow-lg transition-shadow`}>
                 <CardHeader className="p-0">
                   <img 
@@ -256,7 +256,7 @@ export default function PublicStorePage() {
                     alt={product.name} 
                     className="w-full h-48 object-cover rounded-t-lg" 
                   />
-                </CardHeader>
+              </CardHeader>
                 <CardContent className="flex-1 flex flex-col justify-between p-4">
                   <div>
                     <CardTitle className="text-lg font-bold mb-2">{product.name}</CardTitle>
@@ -284,7 +284,7 @@ export default function PublicStorePage() {
                           {product.stock_quantity > 0 ? "In Stock" : "Out of Stock"}
                         </Badge>
                       )}
-                    </div>
+                </div>
                     
                     <div className="flex items-center gap-1 mb-3">
                       {[...Array(5)].map((_, i) => (
@@ -307,11 +307,11 @@ export default function PublicStorePage() {
                         <Share2 className="h-4 w-4" />
                       </Button>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
         ) : (
           <div className="text-center py-12">
             <div className="w-24 h-24 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
