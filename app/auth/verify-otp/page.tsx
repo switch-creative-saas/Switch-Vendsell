@@ -1,14 +1,14 @@
 "use client"
 export const dynamic = "force-dynamic";
 
-import { useState } from "react"
+import { useState, Suspense } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 
-export default function VerifyOtpPage() {
+function VerifyOtpPageInner() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const email = searchParams.get("email") || ""
@@ -95,5 +95,13 @@ export default function VerifyOtpPage() {
         </Card>
       </div>
     </div>
+  )
+}
+
+export default function VerifyOtpPage() {
+  return (
+    <Suspense>
+      <VerifyOtpPageInner />
+    </Suspense>
   )
 } 
