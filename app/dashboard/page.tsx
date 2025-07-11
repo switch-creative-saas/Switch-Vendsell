@@ -143,8 +143,8 @@ export default function DashboardPage() {
             <Button>
               <Plus className="mr-2 h-4 w-4" />
               Create Store
-            </Button>
-          </Link>
+              </Button>
+            </Link>
         </div>
 
         {/* Stats Grid */}
@@ -187,7 +187,7 @@ export default function DashboardPage() {
                   View and manage your online stores
                 </CardDescription>
               </CardHeader>
-            </Link>
+                </Link>
           </Card>
 
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
@@ -202,7 +202,7 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
             </Link>
-          </Card>
+            </Card>
 
           <Card className="cursor-pointer hover:shadow-md transition-shadow">
             <Link href="/dashboard/orders">
@@ -216,13 +216,13 @@ export default function DashboardPage() {
                 </CardDescription>
               </CardHeader>
             </Link>
-          </Card>
+            </Card>
         </div>
 
         {/* Empty State */}
         {stats.totalStores === 0 && (
           <Card className="text-center py-12">
-            <CardContent>
+          <CardContent>
               <Store className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No stores yet</h3>
               <p className="text-muted-foreground mb-4">
@@ -234,8 +234,8 @@ export default function DashboardPage() {
                   Create Your First Store
                 </Button>
               </Link>
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
         )}
       </div>
     </DashboardLayout>
