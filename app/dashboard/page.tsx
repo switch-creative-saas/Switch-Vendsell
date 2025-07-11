@@ -202,7 +202,7 @@ function QuickActions({ storeSlug }: { storeSlug: string }) {
 
 // Main dashboard component
 export default function DashboardPage() {
-  const { user, store, loading } = useUser()
+  const { user, store, loading, error, refreshStore } = useUser()
 
   if (loading) {
     return (
@@ -231,9 +231,15 @@ export default function DashboardPage() {
           <p className="text-muted-foreground mb-6">
             Please set up your store to continue.
           </p>
+          {error && (
+            <div className="mb-4 text-red-600 font-medium">{error}</div>
+          )}
           <Button asChild>
             <Link href="/dashboard/settings">Set Up Store</Link>
           </Button>
+          <div className="mt-4">
+            <Button variant="outline" onClick={refreshStore}>Retry Store Creation</Button>
+          </div>
         </div>
       </ResponsiveContainer>
     )

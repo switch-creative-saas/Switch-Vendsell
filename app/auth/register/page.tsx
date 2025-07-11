@@ -127,6 +127,8 @@ export default function RegisterPage() {
       }
       
       // Create custom store with user's preferences
+      let storeCreated = false
+      let storeErrorMsg = ''
       try {
         await DatabaseService.createStore({
           name: formData.storeName,
@@ -137,7 +139,7 @@ export default function RegisterPage() {
           plan: 'free',
           status: 'active',
           settings: {
-          theme: 'modern-minimal',
+            theme: 'modern-minimal',
             customColors: {
               primary: '#3B82F6',
               secondary: '#F59E0B',
@@ -151,10 +153,20 @@ export default function RegisterPage() {
             whatsappIntegration: true
           }
         })
-      } catch (storeError) {
+        storeCreated = true
+      } catch (storeError: any) {
         console.error('Error creating store:', storeError)
-        // Don't fail the registration if store creation fails
-        // The user can still access their account and create a store later
+        storeErrorMsg = storeError?.message || 'Unknown error creating store.'
+      }
+      
+      if (!storeCreated) {
+        toast({
+          title: "Store creation failed",
+          description: storeErrorMsg + " Please try again or contact support.",
+          variant: "destructive"
+        })
+        setLoading(false)
+        return
       }
       
       toast({ 

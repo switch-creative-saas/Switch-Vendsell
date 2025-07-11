@@ -119,6 +119,7 @@ CREATE POLICY "Users can insert own profile" ON public.users
   FOR INSERT WITH CHECK (auth.uid() = id);
 
 -- RLS Policies for stores table
+-- (Verified: These policies allow store owners to create and read their own stores as long as auth.uid() = owner_id)
 CREATE POLICY "Store owners can view own stores" ON public.stores
   FOR SELECT USING (auth.uid() = owner_id);
 
