@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useCallback, memo } from "react"
 import {
   BarChart3,
@@ -40,7 +39,6 @@ import { useUser } from "@/contexts/UserContext"
 import { AuthService } from "@/lib/auth"
 import { ResponsiveContainer } from "@/components/ui/responsive-container"
 
-// Memoized navigation items to prevent unnecessary re-renders
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
   { name: "Products", href: "/dashboard/products", icon: Package },
@@ -52,7 +50,6 @@ const navigation = [
   { name: "Settings", href: "/dashboard/settings", icon: Settings },
 ]
 
-// Memoized navigation item component
 const NavigationItem = memo(({ item, isActive, onClick }: {
   item: typeof navigation[0]
   isActive: boolean
@@ -86,7 +83,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
   const { toast } = useToast()
   const { user, store, loading } = useUser()
 
-  // Memoized sign out handler
   const handleSignOut = useCallback(async () => {
     setSigningOut(true)
     try {
@@ -99,10 +95,8 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     }
   }, [router, toast])
 
-  // Memoized sidebar close handler
   const closeSidebar = useCallback(() => setSidebarOpen(false), [])
 
-  // Show loading state while user data is being fetched
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -114,7 +108,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
     )
   }
 
-  // Redirect to login if no user
   if (!user) {
     router.push("/auth/login")
     return null
@@ -127,15 +120,12 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors duration-300 flex">
-      {/* Mobile sidebar overlay */}
       {sidebarOpen && (
         <div 
           className="fixed inset-0 z-40 bg-black bg-opacity-50 lg:hidden" 
           onClick={closeSidebar}
         />
       )}
-
-      {/* Sidebar */}
       <aside
         className={`hidden lg:flex flex-col w-64 h-screen bg-gradient-to-br from-blue-700/80 via-purple-700/70 to-emerald-600/80 backdrop-blur-xl shadow-2xl rounded-r-3xl transition-all duration-300 sticky top-0 left-0 z-40 overflow-y-auto border-r border-white/10`}
       >
@@ -147,7 +137,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             <span className="text-2xl font-extrabold tracking-tight text-white drop-shadow">Switch VendSell</span>
           </Link>
         </div>
-        {/* Store Info */}
         <div className="p-8 border-b border-white/10 bg-white/10 backdrop-blur-md">
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 bg-gradient-to-r from-blue-500 to-orange-400 rounded-xl flex items-center justify-center shadow-md">
@@ -168,7 +157,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </Link>
           </div>
         </div>
-        {/* Navigation */}
         <nav className="flex-1 px-4 py-6 space-y-2">
           {navigation.map((item) => {
             const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
@@ -182,7 +170,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             )
           })}
         </nav>
-        {/* Help Section */}
         <div className="p-6 border-t border-white/10 w-full bg-white/10 backdrop-blur-md">
           <div className="bg-gradient-to-r from-blue-500/80 to-purple-500/80 rounded-2xl p-4 flex flex-col gap-2 items-start w-full shadow">
             <div className="flex items-center space-x-2 mb-2">
@@ -194,24 +181,19 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
           </div>
         </div>
       </aside>
-
-      {/* Main content */}
       <main className="flex-1 flex flex-col min-h-screen font-sans bg-gradient-to-br from-white via-blue-50 to-purple-50 text-gray-900 dark:from-gray-900 dark:via-blue-950 dark:to-purple-950 transition-colors duration-300">
-        {/* Top header */}
         <header className="bg-white/80 dark:bg-gray-900/80 shadow-md border-b border-white/10 sticky top-0 z-40 backdrop-blur-md">
           <div className="flex items-center justify-between h-20 px-4 sm:px-10">
             <div className="flex items-center space-x-4">
               <Button variant="ghost" size="lg" className="lg:hidden text-blue-700 dark:text-blue-300" onClick={() => setSidebarOpen(true)}>
                 <Menu className="h-6 w-6" />
               </Button>
-              {/* Search */}
               <div className="relative hidden md:block">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-blue-400" />
                 <Input placeholder="Search products, orders..." className="pl-12 w-72 rounded-xl bg-white/60 border border-blue-100 shadow-sm" />
               </div>
             </div>
             <div className="flex items-center space-x-6">
-              {/* Notifications */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="lg" className="relative text-blue-700 dark:text-blue-300">
@@ -224,7 +206,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </DropdownMenuContent>
               </DropdownMenu>
               <DarkModeToggle />
-              {/* User menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="flex items-center space-x-2">
@@ -253,8 +234,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
             </div>
           </div>
         </header>
-
-        {/* Mobile sidebar */}
         <aside
           className={`fixed inset-y-0 left-0 z-50 w-64 bg-card shadow-lg transform transition-transform duration-300 ease-in-out lg:hidden ${
             sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -271,7 +250,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 <X className="h-5 w-5" />
               </Button>
             </div>
-            {/* Store Info */}
           <div className="p-6 border-b bg-muted">
               <div className="flex items-center space-x-3">
                 <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-orange-600 rounded-lg flex items-center justify-center">
@@ -294,7 +272,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
                 </Link>
               </div>
             </div>
-            {/* Navigation */}
             <nav className="flex-1 px-2 py-4 space-y-2">
               {navigation.map((item) => {
                 const isActive = pathname === item.href || pathname.startsWith(item.href + "/")
@@ -309,8 +286,6 @@ export default function DashboardLayout({ children }: DashboardLayoutProps) {
               })}
             </nav>
         </aside>
-
-        {/* Page content */}
         <ResponsiveContainer className="flex-1 p-4 sm:p-10">
           {children}
         </ResponsiveContainer>
