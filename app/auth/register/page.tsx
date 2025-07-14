@@ -139,7 +139,7 @@ export default function RegisterPage() {
           plan: 'free',
           status: 'active',
           settings: {
-            theme: 'modern-minimal',
+          theme: 'modern-minimal',
             customColors: {
               primary: '#3B82F6',
               secondary: '#F59E0B',

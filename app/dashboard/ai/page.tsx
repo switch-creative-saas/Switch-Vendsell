@@ -27,7 +27,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DashboardLayout } from "@/components/dashboard-layout"
+import DashboardLayout from "@/components/DashboardLayout"
 
 const aiTools = [
   {

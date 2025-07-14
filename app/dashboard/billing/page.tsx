@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { DashboardLayout } from "@/components/dashboard-layout"
+import DashboardLayout from "@/components/DashboardLayout"
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"

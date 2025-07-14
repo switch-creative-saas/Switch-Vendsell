@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
-import { DashboardLayout } from "@/components/dashboard-layout"
+import DashboardLayout from "@/components/DashboardLayout"
 import { useUser } from "@/contexts/UserContext"
 import { DatabaseService, Order } from "@/lib/database"
 import { useRouter } from "next/navigation"
