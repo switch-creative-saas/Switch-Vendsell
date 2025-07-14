@@ -82,7 +82,7 @@ export default function CustomersPage() {
             email: `customer-${customerId.slice(0, 8)}@example.com`,
             phone: undefined,
             location: undefined,
-            totalOrders: 1,
+    totalOrders: 1,
             totalSpent: order.total_amount,
             lastOrder: order.created_at,
             joinedDate: order.created_at,
@@ -117,38 +117,38 @@ export default function CustomersPage() {
     })
   }
 
-  const getSegmentColor = (segment: string) => {
-    switch (segment) {
-      case "vip":
-        return "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300"
-      case "regular":
-        return "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300"
-      case "new":
-        return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300"
-      case "at-risk":
-        return "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300"
-      default:
-        return "bg-muted text-foreground/80"
-    }
+const getSegmentColor = (segment: string) => {
+  switch (segment) {
+    case "vip":
+      return "bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-300"
+    case "regular":
+      return "bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-300"
+    case "new":
+      return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300"
+    case "at-risk":
+      return "bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-300"
+    default:
+      return "bg-muted text-foreground/80"
   }
+}
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "active":
-        return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300"
-      case "inactive":
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case "active":
+      return "bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-300"
+    case "inactive":
         return "bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-300"
-      default:
-        return "bg-muted text-foreground/80"
-    }
+    default:
+      return "bg-muted text-foreground/80"
   }
+}
 
   const filteredCustomers = customers.filter((customer) => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          customer.email.toLowerCase().includes(searchTerm.toLowerCase())
     const matchesSegment = segmentFilter === "all" || customer.segment === segmentFilter
     const matchesStatus = statusFilter === "all" || customer.status === statusFilter
-    
+
     return matchesSearch && matchesSegment && matchesStatus
   })
 
@@ -225,10 +225,10 @@ export default function CustomersPage() {
         {filteredCustomers.length > 0 ? (
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
             {filteredCustomers.map((customer) => (
-              <motion.div
-                key={customer.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                <motion.div
+                  key={customer.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3 }}
               >
                 <Card>
@@ -293,19 +293,19 @@ export default function CustomersPage() {
                       <Badge className={getStatusColor(customer.status)}>
                         {customer.status}
                       </Badge>
-                    </div>
+                  </div>
                   </CardContent>
                 </Card>
-              </motion.div>
-            ))}
-          </div>
+                </motion.div>
+              ))}
+            </div>
         ) : (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-12">
               <User className="h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-semibold mb-2">No customers found</h3>
               <p className="text-muted-foreground text-center mb-4">
-                {searchTerm || segmentFilter !== "all" || statusFilter !== "all"
+                  {searchTerm || segmentFilter !== "all" || statusFilter !== "all"
                   ? "Try adjusting your filters or search terms."
                   : "When customers place orders, they will appear here."}
               </p>
@@ -321,8 +321,8 @@ export default function CustomersPage() {
                 <span>Showing {filteredCustomers.length} of {customers.length} customers</span>
                 <span>Total Value: {formatCurrency(filteredCustomers.reduce((sum, customer) => sum + customer.totalSpent, 0))}</span>
               </div>
-            </CardContent>
-          </Card>
+          </CardContent>
+        </Card>
         )}
       </div>
     </DashboardLayout>
